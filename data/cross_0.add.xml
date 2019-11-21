@@ -1,0 +1,9 @@
+<additionals>
+                        <e2Detector id="detNorthIn" lane="inNorth_0" pos="285" endPos="292" freq="100000" friendlyPos="true" file="cross.out"/>
+                        <e2Detector id="detSouthIn" lane="inSouth_0" pos="285" endPos="292" freq="100000" friendlyPos="true" file="cross.out"/>
+                        <e2Detector id="detEastIn" lane="inEast_0" pos="285" endPos="292" freq="100000" friendlyPos="true" file="cross.out"/>
+                        <e2Detector id="detWestIn" lane="inWest_0" pos="285" endPos="292" freq="100000" friendlyPos="true" file="cross.out"/>
+                    
+                        <edgeData id="edgeData_0" file="edgeData_0.out.xml"/>
+                    </additionals>
+            
