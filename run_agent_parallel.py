@@ -1,9 +1,10 @@
 import time
 
-from PPO_agent import PPOAgent
-from utils import *
-from model import NN_Model
+from agents.PPO_agent import PPOAgent
+from agents.rule_based_agent import RuleBasedAgent
 from environment import Environment
+from models.ppo_model import NN_Model
+from utils import *
 
 
 # target for multiprocess
@@ -25,6 +26,7 @@ def train(id, shared_NN, optimizer, rollout_counter, args):
 
 
 # target for multiprocess
+# ASSUME ONLY ONE EVAL
 def eval(shared_NN, rollout_counter, args, df, verbose):
     time_start = time.time()
     episode_C, model_C, agent_C, other_C, device = args
@@ -70,9 +72,34 @@ def eval(shared_NN, rollout_counter, args, df, verbose):
     agent.env.connection.close()
     print('...Eval agent done')
 
+# target for multiprocess
+def test(id, args, ep_counter, df, verbose):
+    time_start = time.time()
+    episode_C, model_C, agent_C, other_C, device = args
+    rule_set = rule_set_creator(other_C['rule_set'], other_C['rule_set_params'])
+    agent = RuleBasedAgent(args, Environment(args, id, eval_agent=True), rule_set, id)
+    run_info = {}
+    run_info['test_avg_rew'] = 0
+    run_info['test_avg_waiting_time'] = 0
+    while ep_counter.get() < episode_C['test_num_eps']:
+        ep_rew, waiting_time = agent.eval_episode()
+        ep_counter.increment()
+        run_info['test_avg_rew'].append(ep_rew)
+        run_info['test_avg_waiting_time'].append(waiting_time)
+        if verbose:
+            print('Test summary at ep {}: Ep rew: {:.2f}  Ep waiting time: {:.2f}'
+                  .format(ep_counter.get(), ep_rew, waiting_time))
+    time_end = time.time()
+    time_taken = (time_end - time_start) / 60.
+    run_info['total_time_taken(m)'] = time_taken
+    run_info['test_avg_rew'] = np.array(run_info['test_avg_rew']).mean()
+    run_info['test_avg_waiting_time'] = np.array(run_info['test_avg_waiting_time']).mean()
+    # Kill connection to sumo server
+    agent.env.connection.close()
+    print('...Eval agent done')
 
 # verbose means eval prints at end of each batch of eps
-def run_agent(episode_C, model_C, agent_C, other_C, device, df, verbose):
+def run_PPO_agent(episode_C, model_C, agent_C, other_C, device, df, verbose):
     shared_NN = NN_Model(model_C['state_size'], model_C['action_size'], device).to(device)
     shared_NN.share_memory()
     optimizer = torch.optim.Adam(shared_NN.parameters(), agent_C['learning_rate'])
@@ -86,6 +113,20 @@ def run_agent(episode_C, model_C, agent_C, other_C, device, df, verbose):
     # Run training agents
     for i in range(other_C['num_agents']):
         p = mp.Process(target=train, args=(i, shared_NN, optimizer, rollout_counter, args))
+        p.start()
+        processes.append(p)
+    for p in processes:
+        p.join()
+
+# verbose means test prints at end of each batch of eps
+def run_rule_based_agent(episode_C, model_C, agent_C, other_C, device, df, verbose):
+    args = (episode_C, model_C, agent_C, other_C, device)
+    # Check rule set
+    check_rule_set_id(other_C['rule_set'])
+    ep_counter = Counter()  # Eps across all agents
+    processes = []
+    for i in range(other_C['num_agents']):
+        p = mp.Process(target=test, args=(i, args, ep_counter, df, verbose))
         p.start()
         processes.append(p)
     for p in processes:

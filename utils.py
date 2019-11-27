@@ -10,6 +10,7 @@ import torch.nn as nn
 import torch
 import random
 import torch.multiprocessing as mp
+from models.simple_timer_rule_set import SimpleTimerRuleSet
 
 
 # Acknowledge: Ilya Kostrikov (https://github.com/ikostrikov)
@@ -149,3 +150,13 @@ def plot_grad_flow(layers, ave_grads, max_grads):
     plt.ylabel("average gradient")
     plt.title("Gradient flow")
     plt.grid(True)
+
+
+def check_rule_set_id(id):
+    assert id in ['timer'], 'RULESET NOT IN POSSIBLE SETS!'
+
+
+def rule_set_creator(id, params):
+    check_rule_set_id(id)
+    if id == 'timer':
+        return SimpleTimerRuleSet(params)

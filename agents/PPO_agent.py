@@ -1,78 +1,39 @@
 import time
-from copy import deepcopy
 import numpy as np
 import torch
 import torch.nn as nn
 from utils import Storage, tensor, random_sample, ensure_shared_grads
-import xml.etree.ElementTree as ET
+from agents.agent import Agent
 
 
 #Todo: Possibly test if requires_grad=True is necc. for states
 
 # Code adapted from: Shangtong Zhang (https://github.com/ShangtongZhang)
-class PPOAgent:
+class PPOAgent(Agent):
     def __init__(self, args, env, shared_NN, local_NN, optimizer, id):
-        self.episode_C, self.model_C, self.agent_C, self.other_C, self.device = args
+        super(PPOAgent, self).__init__(args, env, id)
         self.NN = local_NN
         self.shared_NN = shared_NN
-        self.env = env
         self.state = self.env.reset()
         self.ep_step = 0
         self.opt = optimizer
-        self.id = id
         self.NN.eval()
 
     def _get_prediction(self, states, actions=None):
         return self.NN(tensor(states, self.device), actions)
 
-    # This method gets the ep results i really care about
-    def _read_edge_waiting_time(self, file, collectEdgeIDs):
-        tree = ET.parse(file)
-        root = tree.getroot()
-        waitingTime = []
-        for c in root.iter('edge'):
-            if c.attrib['id'] in collectEdgeIDs:
-                waitingTime.append(float(c.attrib['waitingTime']))
-        return sum(waitingTime) / len(waitingTime)
+    def _get_action(self, prediction):
+        return prediction['a'].cpu().numpy()[0]
 
-    def _eval_episode(self, test_step):
-        ep_rew = 0
-        step = 0
-        state = self.env.reset()
-        while True:
-            prediction = self._get_prediction(state)
-            action = prediction['a'].cpu().numpy()[0]
-            next_state, reward, done = self.env.step(action, step)
-            ep_rew += reward
-            test_step += 1
-            if done:
-                break
-            state = np.copy(next_state)
-            step += 1
-        # Grab waitingTime
-        # waiting_time = 0
-        waiting_time = self._read_edge_waiting_time('data/edgeData_{}.out.xml'.format(self.id), ['inEast', 'inNorth', 'inSouth', 'inWest'])
-        return test_step, ep_rew, waiting_time
-
-    def eval_episodes(self):
+    def _copy_shared_model_to_local(self):
         self.NN.load_state_dict(self.shared_NN.state_dict())
-        test_step = 0
-        test_info = {}
-        test_info['all_ep_rew'] = []
-        test_info['all_ep_waiting_time'] = []
-        for ep in range(self.episode_C['eval_num_eps']):
-            test_step, ep_rew, waiting_time = self._eval_episode(test_step)
-            test_info['all_ep_rew'].append(ep_rew)
-            test_info['all_ep_waiting_time'].append(waiting_time)
-        return np.array(test_info['all_ep_rew']).mean(), \
-                np.array(test_info['all_ep_waiting_time']).mean()
 
     def train_rollout(self, total_step):
         storage = Storage(self.episode_C['rollout_length'])
         state = np.copy(self.state)
         step_times = []
         # Sync.
-        self.NN.load_state_dict(self.shared_NN.state_dict())
+        self._copy_shared_model_to_local()
         for rollout_step in range(self.episode_C['rollout_length']):
             start_step_time = time.time()
             prediction = self._get_prediction(state)
@@ -82,14 +43,13 @@ class PPOAgent:
             self.ep_step += 1
             if done:
                 # Sync local model with shared model at start of each ep
-                self.NN.load_state_dict(self.shared_NN.state_dict())
+                self._copy_shared_model_to_local()
                 self.ep_step = 0
 
             storage.add(prediction)
             storage.add({'r': tensor(reward, self.device).unsqueeze(-1).unsqueeze(-1),
                          'm': tensor(1 - done, self.device).unsqueeze(-1).unsqueeze(-1),
                          's': tensor(state, self.device)})
-
             state = np.copy(next_state)
 
             total_step += 1
@@ -114,8 +74,6 @@ class PPOAgent:
             storage.adv[i] = advantages.detach()
             storage.ret[i] = returns.detach()
 
-        # print(returns.shape, td_error.shape, advantages.shape, storage.adv[-1].shape, storage.ret[-1].shape)
-
         states, actions, log_probs_old, returns, advantages = storage.cat(['s', 'a', 'log_pi_a', 'ret', 'adv'])
 
         actions = actions.detach()
@@ -128,7 +86,7 @@ class PPOAgent:
         train_pred_times = []
         for _ in range(self.agent_C['optimization_epochs']):
             # Sync. at start of each epoch
-            self.NN.load_state_dict(self.shared_NN.state_dict())
+            self._copy_shared_model_to_local()
             sampler = random_sample(np.arange(states.size(0)), self.agent_C['minibatch_size'])
             for batch_indices in sampler:
                 start_batch_time = time.time()

@@ -111,9 +111,9 @@
     </edge>
 
     <tlLogic id="intersection" type="static" programID="0" offset="0">
-        <phase duration="30" state="GGgsrrGGgsrr"/>
+        <phase duration="100000" state="GGgsrrGGgsrr"/>
         <phase duration="3"  state="yyysrryyysrr"/>
-        <phase duration="30" state="srrGGgsrrGGg"/>
+        <phase duration="100000" state="srrGGgsrrGGg"/>
         <phase duration="3"  state="srryyysrryyy"/>
     </tlLogic>
 

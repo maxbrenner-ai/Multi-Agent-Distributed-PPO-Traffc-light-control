@@ -18,39 +18,30 @@
             <route id="south_east" edges="inSouth outEast" />
 
             
-    <vehicle id="south_north_1" type="car" route="south_north" depart="1" />
-    <vehicle id="west_east_7" type="car" route="west_east" depart="7" />
-    <vehicle id="south_west_27" type="car" route="south_west" depart="27" />
-    <vehicle id="south_east_42" type="car" route="south_east" depart="42" />
-    <vehicle id="east_south_60" type="car" route="east_south" depart="60" />
-    <vehicle id="west_north_69" type="car" route="west_north" depart="69" />
-    <vehicle id="west_north_87" type="car" route="west_north" depart="87" />
-    <vehicle id="south_north_89" type="car" route="south_north" depart="89" />
-    <vehicle id="south_west_92" type="car" route="south_west" depart="92" />
-    <vehicle id="north_west_134" type="car" route="north_west" depart="134" />
-    <vehicle id="west_south_142" type="car" route="west_south" depart="142" />
+    <vehicle id="south_west_9" type="car" route="south_west" depart="9" />
+    <vehicle id="east_south_14" type="car" route="east_south" depart="14" />
+    <vehicle id="west_north_18" type="car" route="west_north" depart="18" />
+    <vehicle id="north_south_26" type="car" route="north_south" depart="26" />
+    <vehicle id="north_south_34" type="car" route="north_south" depart="34" />
+    <vehicle id="west_north_40" type="car" route="west_north" depart="40" />
+    <vehicle id="north_south_53" type="car" route="north_south" depart="53" />
+    <vehicle id="west_north_54" type="car" route="west_north" depart="54" />
+    <vehicle id="south_west_91" type="car" route="south_west" depart="91" />
+    <vehicle id="south_north_100" type="car" route="south_north" depart="100" />
+    <vehicle id="south_east_107" type="car" route="south_east" depart="107" />
+    <vehicle id="south_east_120" type="car" route="south_east" depart="120" />
+    <vehicle id="south_west_138" type="car" route="south_west" depart="138" />
     <vehicle id="west_south_162" type="car" route="west_south" depart="162" />
-    <vehicle id="north_west_179" type="car" route="north_west" depart="179" />
-    <vehicle id="south_west_181" type="car" route="south_west" depart="181" />
-    <vehicle id="south_west_187" type="car" route="south_west" depart="187" />
-    <vehicle id="west_south_200" type="car" route="west_south" depart="200" />
-    <vehicle id="north_south_221" type="car" route="north_south" depart="221" />
-    <vehicle id="north_west_225" type="car" route="north_west" depart="225" />
-    <vehicle id="east_south_280" type="car" route="east_south" depart="280" />
-    <vehicle id="north_east_283" type="car" route="north_east" depart="283" />
-    <vehicle id="west_north_295" type="car" route="west_north" depart="295" />
-    <vehicle id="east_west_301" type="car" route="east_west" depart="301" />
-    <vehicle id="east_south_313" type="car" route="east_south" depart="313" />
-    <vehicle id="south_east_342" type="car" route="south_east" depart="342" />
-    <vehicle id="south_east_354" type="car" route="south_east" depart="354" />
-    <vehicle id="east_north_368" type="car" route="east_north" depart="368" />
-    <vehicle id="west_south_380" type="car" route="west_south" depart="380" />
-    <vehicle id="north_east_387" type="car" route="north_east" depart="387" />
-    <vehicle id="south_east_392" type="car" route="south_east" depart="392" />
-    <vehicle id="east_south_394" type="car" route="east_south" depart="394" />
-    <vehicle id="east_south_403" type="car" route="east_south" depart="403" />
-    <vehicle id="north_west_442" type="car" route="north_west" depart="442" />
-    <vehicle id="west_north_473" type="car" route="west_north" depart="473" />
-    <vehicle id="east_south_481" type="car" route="east_south" depart="481" />
-    <vehicle id="west_south_485" type="car" route="west_south" depart="485" />
+    <vehicle id="south_north_170" type="car" route="south_north" depart="170" />
+    <vehicle id="west_south_175" type="car" route="west_south" depart="175" />
+    <vehicle id="west_north_176" type="car" route="west_north" depart="176" />
+    <vehicle id="south_north_179" type="car" route="south_north" depart="179" />
+    <vehicle id="north_east_183" type="car" route="north_east" depart="183" />
+    <vehicle id="south_north_189" type="car" route="south_north" depart="189" />
+    <vehicle id="south_west_190" type="car" route="south_west" depart="190" />
+    <vehicle id="west_north_213" type="car" route="west_north" depart="213" />
+    <vehicle id="south_west_227" type="car" route="south_west" depart="227" />
+    <vehicle id="west_north_229" type="car" route="west_north" depart="229" />
+    <vehicle id="south_north_236" type="car" route="south_north" depart="236" />
+    <vehicle id="east_north_243" type="car" route="east_north" depart="243" />
 </routes>

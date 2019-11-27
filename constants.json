@@ -4,7 +4,8 @@
         "rollout_length": 64,
         "eval_freq": 5,
         "eval_num_eps": 2,
-        "max_ep_steps": 500
+        "max_ep_steps": 250,
+        "test_num_eps": 50
     },
     "model_C":{
         "state_size": 6,
@@ -23,6 +24,8 @@
         "value_loss_coef": 1.0
     },
     "other_C":{
-        "num_agents": 1
+        "num_agents": 1,
+        "rule_set": "timer",
+        "rule_set_params": {"length": 30}
     }
 }

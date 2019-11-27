@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/MyTraci.iml" filepath="$PROJECT_DIR$/.idea/MyTraci.iml" />
+      <module fileurl="file://$USER_HOME$/Desktop/web-crawler-drl-gnn/.idea/gnn_archs.iml" filepath="$USER_HOME$/Desktop/web-crawler-drl-gnn/.idea/gnn_archs.iml" />
     </modules>
   </component>
 </project>

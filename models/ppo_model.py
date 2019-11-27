@@ -60,7 +60,6 @@ class NN_Model(nn.Module):
         self.models = [self.body_model, self.actor_model, self.critic_model]
 
     def forward(self, states, actions=None):
-        # print(states)
         hidden_states = self.body_model(states)
         v = self.critic_model(hidden_states)
         logits = self.actor_model(hidden_states)
