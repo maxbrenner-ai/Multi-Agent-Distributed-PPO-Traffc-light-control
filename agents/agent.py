@@ -26,8 +26,9 @@ class Agent:
         root = tree.getroot()
         for c in root.iter('edge'):
             if c.attrib['id'] in collectEdgeIDs:
-                for k in c.attrib:
-                    results[k].append(float(c.attrib[k]))
+                for k, v in list(c.attrib.items()):
+                    if k == 'id': continue
+                    results[k].append(float(v))
         return results
 
     def eval_episode(self, results):
@@ -54,5 +55,6 @@ class Agent:
             results = self.eval_episode(results)
         # So I could add the data from each ep to the data collector but I like the smoothing effect this has
         if current_rollout:
-            results['rollout'] = current_rollout
+            results['rollout'] = [current_rollout]
+        results = {k: sum(v) / len(v) for k, v in list(results.items())}
         self.data_collector.collect_ep(results)

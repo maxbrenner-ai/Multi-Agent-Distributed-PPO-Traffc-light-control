@@ -1,6 +1,6 @@
 {
     "episode_C":{
-        "num_train_rollouts": 10,
+        "num_train_rollouts": 20,
         "rollout_length": 64,
         "eval_freq": 5,
         "eval_num_eps": 2,
@@ -25,7 +25,7 @@
     },
     "other_C":{
         "num_agents": 1,
-        "rule_set": "timer",
+        "rule_set": null,
         "rule_set_params": {"length": 30}
     }
 }

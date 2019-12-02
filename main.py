@@ -20,7 +20,7 @@ def run_normal(verbose, num_experiments=1, df_path=None, overwrite=True, data_to
                                        df_path, overwrite, verbose)
 
     for exp in range(num_experiments):
-        print(' --- Running experiment {} --- '.format(exp))
+        print(' --- Running experiment {} --- '.format(exp+1))
 
         # exp_start = time.time()
         data_collector_obj.start_timer()
@@ -32,7 +32,7 @@ def run_normal(verbose, num_experiments=1, df_path=None, overwrite=True, data_to
 
         # Save and Refresh the data_collector
         data_collector_obj.end_timer(printIt=True)
-        data_collector_obj.print_summary()
+        data_collector_obj.print_summary(exp+1)
         data_collector_obj.done_with_experiment()
 
 if __name__ == '__main__':
@@ -44,12 +44,6 @@ if __name__ == '__main__':
         sys.exit("please declare environment variable 'SUMO_HOME'")
 
     device = torch.device('cpu')
-
-    excel_header = ['total_time_taken(m)', 'eval_avg_rew', 'eval_avg_waiting_time', 'E_num_train_rollouts',
-                    'E_rollout_length', 'E_eval_freq', 'E_eval_num_eps', 'E_max_ep_steps', 'E_test_num_eps', 'A_gae_tau',
-                    'A_entropy_weight', 'A_minibatch_size', 'A_optimization_epochs', 'A_ppo_ratio_clip',
-                    'A_discount', 'A_learning_rate', 'A_clip_grads', 'A_gradient_clip', 'A_value_loss_coef',
-                    'O_num_agents', 'O_rule_set', 'O_rule_set_params']
 
     # df_path = 'run-data.xlsx'
 

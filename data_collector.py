@@ -1,4 +1,4 @@
-import torch.multiprocessing as mp
+from multiprocessing import Manager, Lock
 import pandas as pd
 import os.path
 from os import path
@@ -17,10 +17,10 @@ _TEST_DEF_KEYS = []
 
 _GLOBAL_DATA = {'time': {'header': 'total time taken(m)', 'init_value': 0, 'add_type': 'set'}}
 _EVAL_DATA = {'rew': {'header': 'eval_best_rew', 'init_value': float('-inf'), 'add_type': 'set_on_greater'},
-              'waiting_time': {'header': 'eval_best_waiting_time', 'init_value': float('inf'), 'add_type': 'set_on_less'},
+              'waitingTime': {'header': 'eval_best_waiting_time', 'init_value': float('inf'), 'add_type': 'set_on_less'},
               'rollout': {'header': 'eval_train_rollout', 'init_value': float('inf'), 'add_type': 'set_on_less'}}
 _TEST_DATA = {'rew': {'header': 'test_avg_rew', 'init_value': [], 'add_type': 'append'},
-            'waiting_time': {'header': 'test_avg_waiting_time', 'init_value': [], 'add_type': 'append'}}
+            'waitingTime': {'header': 'test_avg_waiting_time', 'init_value': [], 'add_type': 'append'}}
 
 class DataCollector:
     # Will make a df or add to an existing df (if a file already exists in the path)
@@ -44,7 +44,7 @@ class DataCollector:
         # If overwite then make a new one no matter if it already exists, other wise check the path
         self.df = self._check_if_df_exists() if not overwrite else self._make_df()
         self.verbose = verbose
-        self.lock = mp.Lock()
+        # self.lock = Lock()
 
     # Check to make sure def keys are in the new_data
     def _check_def_keys(self, new_data):
@@ -71,6 +71,7 @@ class DataCollector:
 
         if set_values:
             for key in new_data: self._add_value(key, new_data[key])
+
         self._print(new_data, new_best)
 
     # Vanilla collect, doesnt check anything just adds the data
@@ -86,25 +87,29 @@ class DataCollector:
             prepend = 'NEW BEST ' if new_best else ''
             prepend += 'on rollout: {}  '.format(new_data['rollout'])
         all_print = prepend
-        for k in self.data:  # So its in the correct order
+        for k in list(self.data.keys()):  # So its in the correct order
             if k in new_data and k != 'rollout':
                 all_print += '{}: {:.2f}  '.format(k, new_data[k])
         print(all_print)
 
-    def print_summary(self):
-        all_print = 'Experiment Summary:  '
-        for k, v in self.data:
-            if k in _EVAL_DEF_KEYS or k in _TEST_DEF_KEYS:
+    def print_summary(self, exp):
+        all_print = 'Experiment {} Summary:  '.format(exp)
+        for k, v in list(self.data.items()):
+            if k not in _EVAL_DEF_KEYS + _TEST_DEF_KEYS + POSSIBLE_DATA:
                 continue
-            all_print += '{}: {:.2f}  '.format(k, v)
+            if isinstance(v, float):
+                all_print += '{}: {:.2f}  '.format(k, v)
+            else:
+                all_print += '{}: {}  '.format(k, v)
+        print(all_print)
 
     def _add_value(self, k, v):
         if k not in self.data: return
         add_type = self.info_dict[k]['add_type']
-        with self.lock:
-            if add_type == 'append': self.data[k].append(v)
-            if add_type == 'set_on_greater' or add_type == 'set_on_less': self.data[k] = v
-            else: assert 1 == 0
+        # with self.lock:
+        if add_type == 'append': self.data[k].append(v)
+        if add_type == 'set_on_greater' or add_type == 'set_on_less': self.data[k] = v
+        else: assert 1 == 0
 
     def _add_def_keys(self):
         li = _EVAL_DEF_KEYS if self.eval_or_test == 'eval' else _TEST_DEF_KEYS
@@ -119,21 +124,24 @@ class DataCollector:
             return self._make_df()
 
     def _make_df(self):
-        self.df = pd.DataFrame(columns=list(self.data.keys))
-        self.df.to_excel(self.df_path, index=False, header=list(self.data.keys))
+        df = pd.DataFrame(columns=list(self.data.keys()))
+        df.to_excel(self.df_path, index=False, header=list(self.data.keys()))
+        return df
 
-    def _add_hyp_param_dict(self, episode_C, model_C, agent_C, other_C):
+    def _add_hyp_param_dict(self, data):
         def add_hyp_param_dict(append_letter, dic):
             for k, v in list(dic.items()):
-                self.data[append_letter + '_' + k] = v
-        add_hyp_param_dict('E', episode_C)
-        add_hyp_param_dict('M', model_C)
-        add_hyp_param_dict('A', agent_C)
-        add_hyp_param_dict('O', other_C)
+                data[append_letter + '_' + k] = v
+        add_hyp_param_dict('E', self.constants['episode_C'])
+        add_hyp_param_dict('M', self.constants['model_C'])
+        add_hyp_param_dict('A', self.constants['agent_C'])
+        add_hyp_param_dict('O', self.constants['other_C'])
+        return data
 
     def _append_to_df(self):
         assert self.df is not None, 'At this point df should not be none.'
-        self.df = self.df.append(self.data, ignore_index=True)
+        dat = {k: v for k, v in list(self.data.items())}
+        self.df = self.df.append(dat, ignore_index=True)
 
     def _write_to_excel(self):
         self.df.to_excel(self.df_path, index=False)
@@ -149,23 +157,25 @@ class DataCollector:
         self._refresh_data_store()
 
     def _make_data_dict(self):
-        self.info_dict = _GLOBAL_DATA.copy()
-        self.data = OrderedDict()
+        info_dict = _GLOBAL_DATA.copy()
+        data = Manager().dict()
         # Add values to collect
         for key in self.data_keys:
             # Check eval or test first then global then error
             if self.eval_or_test == 'eval' and key in _EVAL_DATA:
-                self.data[key] = _EVAL_DATA[key]['init_value']
-                self.info_dict[key] = _EVAL_DATA[key].copy()
+                data[key] = _EVAL_DATA[key]['init_value']
+                info_dict[key] = _EVAL_DATA[key].copy()
             elif self.eval_or_test == 'test' and key in _TEST_DATA:
-                self.data[key] = _TEST_DATA[key]['init_value']
-                self.info_dict[key] = _TEST_DATA[key].copy()
+                data[key] = _TEST_DATA[key]['init_value']
+                info_dict[key] = _TEST_DATA[key].copy()
             elif key in _GLOBAL_DATA:
-                self.data[key] = _GLOBAL_DATA[key]['init_value']
+                data[key] = _GLOBAL_DATA[key]['init_value']
+                info_dict[key] = _GLOBAL_DATA[key].copy()
             else:
                 raise ValueError('Data collector was sent {} which isnt data that can be collected'.format(key))
         # Add hyp param values
-        self._add_hyp_param_dict(*self.constants)
+        data = self._add_hyp_param_dict(data)
+        return data, info_dict
 
     def start_timer(self):
         self.start_time = time.time()

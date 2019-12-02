@@ -7,8 +7,11 @@ from utils import *
 
 
 # target for multiprocess
-def train(id, agent, rollout_counter, args):
+def train(id, shared_NN, data_collector, optimizer, rollout_counter, args):
     episode_C, model_C, agent_C, other_C, device = args
+    # Assumes PPO agent
+    local_NN = NN_Model(model_C['state_size'], model_C['action_size'], device).to(device)
+    agent = PPOAgent(args, Environment(args, id, eval_agent=False), None, shared_NN, local_NN, optimizer, id)
     train_step = 0
     while rollout_counter.get() < episode_C['num_train_rollouts'] + 1:
         agent.train_rollout(train_step)
@@ -19,8 +22,11 @@ def train(id, agent, rollout_counter, args):
 
 
 # target for multiprocess
-def eval(id, agent, rollout_counter, args):
+def eval(id, shared_NN, data_collector, rollout_counter, args):
     episode_C, model_C, agent_C, other_C, device = args
+    # Assumes PPO agent
+    local_NN = NN_Model(model_C['state_size'], model_C['action_size'], device).to(device)
+    agent = PPOAgent(args, Environment(args, id, eval_agent=True), data_collector, shared_NN, local_NN, None, id)
     last_eval = 0
     while True:
         curr_r = rollout_counter.get()
@@ -36,7 +42,7 @@ def eval(id, agent, rollout_counter, args):
 
 
 # target for multiprocess
-def test(id, agent, ep_counter, args):
+def test(id, ep_counter, args, agent=None):
     episode_C, model_C, agent_C, other_C, device = args
     while ep_counter.get() < episode_C['test_num_eps']:
         agent.eval_episodes(None)
@@ -56,17 +62,13 @@ def run_PPO_agent(episode_C, model_C, agent_C, other_C, device, data_collector):
     args = (episode_C, model_C, agent_C, other_C, device)
     # Run eval agent
     id = 'eval_0'
-    local_NN = NN_Model(model_C['state_size'], model_C['action_size'], device).to(device)
-    agent = PPOAgent(args, Environment(args, id, eval_agent=True), data_collector, shared_NN, local_NN, None, id)
-    p = mp.Process(target=eval, args=(id, agent, rollout_counter, args))
+    p = mp.Process(target=eval, args=(id, shared_NN, data_collector, rollout_counter, args))
     p.start()
     processes.append(p)
     # Run training agents
     for i in range(other_C['num_agents']):
         id = 'train_'+str(i)
-        local_NN = NN_Model(model_C['state_size'], model_C['action_size'], device).to(device)
-        agent = PPOAgent(args, Environment(args, id, eval_agent=False), None, shared_NN, local_NN, optimizer, id)
-        p = mp.Process(target=train, args=(id, agent, rollout_counter, args))
+        p = mp.Process(target=train, args=(id, shared_NN, data_collector, optimizer, rollout_counter, args))
         p.start()
         processes.append(p)
     for p in processes:
@@ -82,7 +84,7 @@ def run_rule_based_agent(episode_C, model_C, agent_C, other_C, device, data_coll
     for i in range(other_C['num_agents']):
         id = 'test_'+str(i)
         agent = RuleBasedAgent(args, Environment(args, id, eval_agent=True), rule_set, data_collector, id)
-        p = mp.Process(target=test, args=(id, agent, ep_counter, args))
+        p = mp.Process(target=test, args=(id, ep_counter, args, agent))
         p.start()
         processes.append(p)
     for p in processes:
