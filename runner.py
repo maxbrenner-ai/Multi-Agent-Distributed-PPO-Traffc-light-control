@@ -6,13 +6,11 @@ os.environ["CUDA_VISIBLE_DEVICES"]="-1"
 # -----------
 
 import sys
-import optparse
 from numpy.random import choice
 from numpy.random import uniform
 import numpy as np
 import xml.etree.ElementTree as ET
-import contextlib
-from DQN_agent import Agent, RandomAgent, MEMORY_CAPACITY, WARMUP_CAP
+from agents.DQN_agent import Agent, RandomAgent, WARMUP_CAP
 
 # we need to import python modules from the $SUMO_HOME/tools directory
 if 'SUMO_HOME' in os.environ:

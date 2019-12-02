@@ -36,10 +36,10 @@ class Counter:
         with self.lock:
             return self.val.value
 
-    def increment(self):
+    def increment(self, amt=1):
         # used by workers
         with self.lock:
-            self.val.value += 1
+            self.val.value += amt
 
     def reset(self):
         # used by chief

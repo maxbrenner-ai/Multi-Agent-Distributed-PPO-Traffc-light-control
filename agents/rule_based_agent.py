@@ -2,8 +2,8 @@ from agents.agent import Agent
 
 
 class RuleBasedAgent(Agent):
-    def __init__(self, args, env, rule_set, id):
-        super(RuleBasedAgent, self).__init__(args, env, id)
+    def __init__(self, args, env, rule_set, data_collector, id):
+        super(RuleBasedAgent, self).__init__(args, env, data_collector, id)
         self.rule_set = rule_set
 
     def _get_prediction(self, states, actions=None):

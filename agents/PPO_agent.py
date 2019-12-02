@@ -10,8 +10,8 @@ from agents.agent import Agent
 
 # Code adapted from: Shangtong Zhang (https://github.com/ShangtongZhang)
 class PPOAgent(Agent):
-    def __init__(self, args, env, shared_NN, local_NN, optimizer, id):
-        super(PPOAgent, self).__init__(args, env, id)
+    def __init__(self, args, env, data_collector, shared_NN, local_NN, optimizer, id):
+        super(PPOAgent, self).__init__(args, env, id, data_collector)
         self.NN = local_NN
         self.shared_NN = shared_NN
         self.state = self.env.reset()

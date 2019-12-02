@@ -1,13 +1,15 @@
 import xml.etree.ElementTree as ET
 import numpy as np
+from collections import defaultdict
 
 
 # Parent - abstract
 class Agent:
-    def __init__(self, args, env, id):
+    def __init__(self, args, env, id, data_collector):
         self.episode_C, self.model_C, self.agent_C, self.other_C, self.device = args
         self.env = env
         self.id = id
+        self.data_collector = data_collector
 
     def _get_prediction(self, states, actions=None):
         raise NotImplementedError
@@ -18,17 +20,17 @@ class Agent:
     def _copy_shared_model_to_local(self):
         raise NotImplementedError
 
-    # This method gets the ep results i really care about
-    def _read_edge_waiting_time(self, file, collectEdgeIDs):
+    # This method gets the ep results i really care about (gets averages)
+    def _read_edge_results(self, file, collectEdgeIDs, results):
         tree = ET.parse(file)
         root = tree.getroot()
-        waitingTime = []
         for c in root.iter('edge'):
             if c.attrib['id'] in collectEdgeIDs:
-                waitingTime.append(float(c.attrib['waitingTime']))
-        return sum(waitingTime) / len(waitingTime)
+                for k in c.attrib:
+                    results[k].append(float(c.attrib[k]))
+        return results
 
-    def eval_episode(self):
+    def eval_episode(self, results):
         ep_rew = 0
         step = 0
         state = self.env.reset()
@@ -41,18 +43,16 @@ class Agent:
                 break
             state = np.copy(next_state)
             step += 1
-        # Grab waitingTime
-        waiting_time = self._read_edge_waiting_time('data/edgeData_{}.out.xml'.format(self.id), ['inEast', 'inNorth', 'inSouth', 'inWest'])
-        return ep_rew, waiting_time
+        results = self._read_edge_results('data/edgeData_{}.out.xml'.format(self.id), ['inEast', 'inNorth', 'inSouth', 'inWest'], results)
+        results['rew'].append(ep_rew)
+        return results
 
-    def eval_episodes(self):
+    def eval_episodes(self, current_rollout):
         self._copy_shared_model_to_local()
-        test_info = {}
-        test_info['all_ep_rew'] = []
-        test_info['all_ep_waiting_time'] = []
+        results = defaultdict(list)
         for ep in range(self.episode_C['eval_num_eps']):
-            ep_rew, waiting_time = self.eval_episode()
-            test_info['all_ep_rew'].append(ep_rew)
-            test_info['all_ep_waiting_time'].append(waiting_time)
-        return np.array(test_info['all_ep_rew']).mean(), \
-                np.array(test_info['all_ep_waiting_time']).mean()
+            results = self.eval_episode(results)
+        # So I could add the data from each ep to the data collector but I like the smoothing effect this has
+        if current_rollout:
+            results['rollout'] = current_rollout
+        self.data_collector.collect_ep(results)
