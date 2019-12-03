@@ -27,6 +27,7 @@ class DataCollector:
     def __init__(self, data_keys, mvp_key, constants, eval_or_test, df_path, overwrite, verbose):
         assert len(set(data_keys)) == len(data_keys), 'There are duplicate keys in data_keys: {}'.format(
             self.data_keys)
+        # self.manager = Manager()
         self.data_keys = data_keys
         self.eval_or_test = eval_or_test
         if self.eval_or_test == 'eval':
@@ -54,7 +55,7 @@ class DataCollector:
 
     # This is for collecting info at the end of an ep (or chunk of episodes), check MVP value if eval to see if I should
     # add this set of data, because during eval mode I only save data from eps where the MVP value is better than before
-    def collect_ep(self, new_data):
+    def collect_ep(self, new_data, ep_count=None):
         self._check_def_keys(new_data)
         new_best = False
         set_values = False
@@ -72,7 +73,7 @@ class DataCollector:
         if set_values:
             for key in new_data: self._add_value(key, new_data[key])
 
-        self._print(new_data, new_best)
+        self._print(new_data, new_best, ep_count)
 
     # Vanilla collect, doesnt check anything just adds the data
     # def collect(self, new_data):
@@ -80,12 +81,14 @@ class DataCollector:
     #         self._add_value(key, new_data[key])
     #     self._print(new_data, False)
 
-    def _print(self, new_data, new_best):
+    def _print(self, new_data, new_best, ep_count):
         if not self.verbose: return
         prepend = ''
         if self.eval_or_test == 'eval':
             prepend = 'NEW BEST ' if new_best else ''
             prepend += 'on rollout: {}  '.format(new_data['rollout'])
+        if ep_count is not None:
+            prepend = 'Current test episode: {}  '.format(ep_count)
         all_print = prepend
         for k in list(self.data.keys()):  # So its in the correct order
             if k in new_data and k != 'rollout':
@@ -107,9 +110,13 @@ class DataCollector:
         if k not in self.data: return
         add_type = self.info_dict[k]['add_type']
         # with self.lock:
-        if add_type == 'append': self.data[k].append(v)
-        if add_type == 'set_on_greater' or add_type == 'set_on_less': self.data[k] = v
-        else: assert 1 == 0
+        if add_type == 'append':
+            # print()
+            self.data[k].append(v)
+        elif add_type == 'set_on_greater' or add_type == 'set_on_less': self.data[k] = v
+        else: assert 1 == 0, add_type
+
+        # print(self.data[k])
 
     def _add_def_keys(self):
         li = _EVAL_DEF_KEYS if self.eval_or_test == 'eval' else _TEST_DEF_KEYS
@@ -150,6 +157,12 @@ class DataCollector:
     def _refresh_data_store(self):
         self._make_data_dict()
 
+    # This is just for getting the mean for array objects in the data dict
+    def process_data(self):
+        for k, v in list(self.data.items()):
+            if k in self.info_dict and self.info_dict[k]['add_type'] == 'append':
+                self.data[k] = sum(v) / len(v)
+
     # Signals to this object that it can add to df and and refresh the data store (call when threads are done)
     def done_with_experiment(self):
         self._append_to_df()
@@ -158,7 +171,8 @@ class DataCollector:
 
     def _make_data_dict(self):
         info_dict = _GLOBAL_DATA.copy()
-        data = Manager().dict()
+        manager = Manager()
+        data = manager.dict()
         # Add values to collect
         for key in self.data_keys:
             # Check eval or test first then global then error
@@ -173,6 +187,7 @@ class DataCollector:
                 info_dict[key] = _GLOBAL_DATA[key].copy()
             else:
                 raise ValueError('Data collector was sent {} which isnt data that can be collected'.format(key))
+            if data[key] == []: data[key] = manager.list()
         # Add hyp param values
         data = self._add_hyp_param_dict(data)
         return data, info_dict

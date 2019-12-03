@@ -45,7 +45,7 @@ def eval(id, shared_NN, data_collector, rollout_counter, args):
 def test(id, ep_counter, args, agent=None):
     episode_C, model_C, agent_C, other_C, device = args
     while ep_counter.get() < episode_C['test_num_eps']:
-        agent.eval_episodes(None)
+        agent.eval_episodes(None, ep_count=ep_counter.get())
         ep_counter.increment(episode_C['eval_num_eps'])
     # Kill connection to sumo server
     agent.env.connection.close()

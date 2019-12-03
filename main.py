@@ -4,6 +4,7 @@ from run_agent_parallel import run_PPO_agent, run_rule_based_agent
 import sys
 import os
 from data_collector import DataCollector, POSSIBLE_DATA
+from multiprocessing import Manager
 
 
 def run_normal(verbose, num_experiments=1, df_path=None, overwrite=True, data_to_collect=POSSIBLE_DATA, MVP_key='waitingTime'):
@@ -32,6 +33,7 @@ def run_normal(verbose, num_experiments=1, df_path=None, overwrite=True, data_to
 
         # Save and Refresh the data_collector
         data_collector_obj.end_timer(printIt=True)
+        data_collector_obj.process_data()
         data_collector_obj.print_summary(exp+1)
         data_collector_obj.done_with_experiment()
 

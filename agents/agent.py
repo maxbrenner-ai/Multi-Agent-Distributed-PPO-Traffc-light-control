@@ -11,6 +11,9 @@ class Agent:
         self.id = id
         self.data_collector = data_collector
 
+    def _reset(self):
+        raise NotImplementedError
+
     def _get_prediction(self, states, actions=None):
         raise NotImplementedError
 
@@ -31,10 +34,12 @@ class Agent:
                     results[k].append(float(v))
         return results
 
+    # ep_count only for test
     def eval_episode(self, results):
         ep_rew = 0
         step = 0
         state = self.env.reset()
+        self._reset()
         while True:
             prediction = self._get_prediction(state)
             action = self._get_action(prediction)
@@ -48,7 +53,7 @@ class Agent:
         results['rew'].append(ep_rew)
         return results
 
-    def eval_episodes(self, current_rollout):
+    def eval_episodes(self, current_rollout, ep_count=None):
         self._copy_shared_model_to_local()
         results = defaultdict(list)
         for ep in range(self.episode_C['eval_num_eps']):
@@ -57,4 +62,4 @@ class Agent:
         if current_rollout:
             results['rollout'] = [current_rollout]
         results = {k: sum(v) / len(v) for k, v in list(results.items())}
-        self.data_collector.collect_ep(results)
+        self.data_collector.collect_ep(results, ep_count+self.episode_C['eval_num_eps'])

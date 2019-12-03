@@ -19,6 +19,9 @@ class PPOAgent(Agent):
         self.opt = optimizer
         self.NN.eval()
 
+    def _reset(self):
+        pass
+
     def _get_prediction(self, states, actions=None):
         return self.NN(tensor(states, self.device), actions)
 
