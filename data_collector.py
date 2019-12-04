@@ -40,7 +40,7 @@ class DataCollector:
             self.data_keys)
         self.mvp_key = mvp_key
         self.constants = constants
-        self.data, self.info_dict = self._make_data_dict()
+        self._make_data_dict()
         self.df_path = df_path
         # If overwite then make a new one no matter if it already exists, other wise check the path
         self.df = self._check_if_df_exists() if not overwrite else self._make_df()
@@ -95,8 +95,11 @@ class DataCollector:
                 all_print += '{}: {:.2f}  '.format(k, new_data[k])
         print(all_print)
 
-    def print_summary(self, exp):
-        all_print = 'Experiment {} Summary:  '.format(exp)
+    def print_summary(self, exp1, exp2=None):
+        if exp2 == None:
+            all_print = 'Experiment {} Summary:  '.format(exp1)
+        else:
+            all_print = 'Experiment {}.{} Summary:  '.format(exp1, exp2)
         for k, v in list(self.data.items()):
             if k not in _EVAL_DEF_KEYS + _TEST_DEF_KEYS + POSSIBLE_DATA:
                 continue
@@ -135,15 +138,15 @@ class DataCollector:
         df.to_excel(self.df_path, index=False, header=list(self.data.keys()))
         return df
 
-    def _add_hyp_param_dict(self, data):
+    def _add_hyp_param_dict(self):
         def add_hyp_param_dict(append_letter, dic):
             for k, v in list(dic.items()):
-                data[append_letter + '_' + k] = v
+                self.data[append_letter + '_' + k] = v
         add_hyp_param_dict('E', self.constants['episode_C'])
         add_hyp_param_dict('M', self.constants['model_C'])
         add_hyp_param_dict('A', self.constants['agent_C'])
         add_hyp_param_dict('O', self.constants['other_C'])
-        return data
+        return self.data
 
     def _append_to_df(self):
         assert self.df is not None, 'At this point df should not be none.'
@@ -170,27 +173,27 @@ class DataCollector:
         self._refresh_data_store()
 
     def _make_data_dict(self):
-        info_dict = _GLOBAL_DATA.copy()
+        self.info_dict = _GLOBAL_DATA.copy()
         manager = Manager()
-        data = manager.dict()
+        self.data = manager.dict()
         # Add values to collect
         for key in self.data_keys:
             # Check eval or test first then global then error
             if self.eval_or_test == 'eval' and key in _EVAL_DATA:
-                data[key] = _EVAL_DATA[key]['init_value']
-                info_dict[key] = _EVAL_DATA[key].copy()
+                self.data[key] = _EVAL_DATA[key]['init_value']
+                self.info_dict[key] = _EVAL_DATA[key].copy()
             elif self.eval_or_test == 'test' and key in _TEST_DATA:
-                data[key] = _TEST_DATA[key]['init_value']
-                info_dict[key] = _TEST_DATA[key].copy()
+                self.data[key] = _TEST_DATA[key]['init_value']
+                self.info_dict[key] = _TEST_DATA[key].copy()
             elif key in _GLOBAL_DATA:
-                data[key] = _GLOBAL_DATA[key]['init_value']
-                info_dict[key] = _GLOBAL_DATA[key].copy()
+                self.data[key] = _GLOBAL_DATA[key]['init_value']
+                self.info_dict[key] = _GLOBAL_DATA[key].copy()
             else:
                 raise ValueError('Data collector was sent {} which isnt data that can be collected'.format(key))
-            if data[key] == []: data[key] = manager.list()
+            if self.data[key] == []: self.data[key] = manager.list()
         # Add hyp param values
-        data = self._add_hyp_param_dict(data)
-        return data, info_dict
+        self._add_hyp_param_dict()
+        return self.data, self.info_dict
 
     def start_timer(self):
         self.start_time = time.time()

@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch
 import numpy as np
-from utils import plot_grad_flow, layer_init_filter
+from utils.utils import plot_grad_flow, layer_init_filter
 
 
 # Simple one layer

@@ -1,0 +1,31 @@
+{
+    "episode_C":{
+        "num_train_rollouts": [20],
+        "rollout_length": [64],
+        "eval_freq": [5],
+        "eval_num_eps": [5],
+        "max_ep_steps": [150],
+        "test_num_eps": [15]
+    },
+    "model_C":{
+        "state_size": [6],
+        "action_size": [2]
+    },
+    "agent_C":{
+        "gae_tau": [0.90],
+        "entropy_weight": [0.01, 0.05],
+        "minibatch_size": [32],
+        "optimization_epochs": [10],
+        "ppo_ratio_clip": [0.3],
+        "discount": [0.99],
+        "learning_rate": [1e-3],
+        "clip_grads": [true],
+        "gradient_clip": [1.0],
+        "value_loss_coef": [1.0]
+    },
+    "other_C":{
+        "num_agents": [5],
+        "rule_set": ["timer"],
+        "rule_set_params": [{"length": 10}]
+    }
+}

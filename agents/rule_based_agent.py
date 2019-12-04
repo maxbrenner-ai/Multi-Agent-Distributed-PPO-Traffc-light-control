@@ -2,8 +2,8 @@ from agents.agent import Agent
 
 
 class RuleBasedAgent(Agent):
-    def __init__(self, args, env, rule_set, data_collector, id):
-        super(RuleBasedAgent, self).__init__(args, env, id, data_collector)
+    def __init__(self, constants, device, env, rule_set, data_collector, id):
+        super(RuleBasedAgent, self).__init__(constants, device, env, id, data_collector)
         self.rule_set = rule_set
 
     def _reset(self):

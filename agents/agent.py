@@ -5,8 +5,10 @@ from collections import defaultdict
 
 # Parent - abstract
 class Agent:
-    def __init__(self, args, env, id, data_collector):
-        self.episode_C, self.model_C, self.agent_C, self.other_C, self.device = args
+    def __init__(self, constants, device, env, id, data_collector):
+        self.episode_C, self.model_C, self.agent_C, self.other_C = constants['episode_C'], constants['model_C'], \
+                                                   constants['agent_C'], constants['other_C']
+        self.device = device
         self.env = env
         self.id = id
         self.data_collector = data_collector

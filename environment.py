@@ -20,8 +20,10 @@ DETS = ['detNorthIn', 'detSouthIn', 'detEastIn', 'detWestIn']
 
 
 class Environment:
-    def __init__(self, args, agent_ID, eval_agent):
-        self.episode_C, self.model_C, self.agent_C, self.other_C, self.device = args
+    def __init__(self, constants, device, agent_ID, eval_agent):
+        self.episode_C, self.model_C, self.agent_C, self.other_C = constants['episode_C'], constants['model_C'], \
+                                                   constants['agent_C'], constants['other_C']
+        self.device = device
         self.agent_ID = agent_ID
         self.eval_agent = eval_agent
         # For sumo connection

@@ -2,7 +2,7 @@ import time
 import numpy as np
 import torch
 import torch.nn as nn
-from utils import Storage, tensor, random_sample, ensure_shared_grads
+from utils.utils import Storage, tensor, random_sample, ensure_shared_grads
 from agents.agent import Agent
 
 
@@ -10,8 +10,8 @@ from agents.agent import Agent
 
 # Code adapted from: Shangtong Zhang (https://github.com/ShangtongZhang)
 class PPOAgent(Agent):
-    def __init__(self, args, env, data_collector, shared_NN, local_NN, optimizer, id):
-        super(PPOAgent, self).__init__(args, env, id, data_collector)
+    def __init__(self, constants, device, env, data_collector, shared_NN, local_NN, optimizer, id):
+        super(PPOAgent, self).__init__(constants, device, env, id, data_collector)
         self.NN = local_NN
         self.shared_NN = shared_NN
         self.state = self.env.reset()

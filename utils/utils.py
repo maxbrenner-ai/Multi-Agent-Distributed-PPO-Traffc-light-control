@@ -54,20 +54,6 @@ def load_constants(filepath):
     return data
 
 
-def select_hyp_params(grid):
-    def select_params(dic):
-        return_dic = {}
-        for name, values in list(dic.items()):
-            return_dic[name] = random.sample(values, 1)[0]
-        return return_dic
-    episode_C = select_params(grid['episode_C'])
-    model_C = select_params(grid['model_C'])
-    goal_C = select_params(grid['goal_C'])
-    agent_C = select_params(grid['agent_C'])
-    other_C = select_params(grid['other_C'])
-    return episode_C, model_C, goal_C, agent_C, other_C
-
-
 def refresh_excel(filepath, excel_header):
     df = pd.DataFrame(columns=excel_header)
     df.to_excel(filepath, index=False, header=excel_header)
@@ -126,7 +112,7 @@ def random_sample(indices, batch_size):
     r = len(indices) % batch_size
     if r:
         yield indices[-r:]
-    
+
 
 def layer_init_filter(m):
     if type(m) == nn.Linear:
