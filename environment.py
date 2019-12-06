@@ -7,20 +7,12 @@ import xml.etree.ElementTree as ET
 
 import os, sys
 
-# class HiddenPrints:
-#     def __enter__(self):
-#         self._original_stdout = sys.stdout
-#         sys.stdout = open(os.devnull, 'w')
-#
-#     def __exit__(self, exc_type, exc_val, exc_tb):
-#         sys.stdout.close()
-#         sys.stdout = self._original_stdout
 
 DETS = ['detNorthIn', 'detSouthIn', 'detEastIn', 'detWestIn']
 
 
 class Environment:
-    def __init__(self, constants, device, agent_ID, eval_agent):
+    def __init__(self, constants, device, agent_ID, eval_agent, vis=False):
         self.episode_C, self.model_C, self.agent_C, self.other_C = constants['episode_C'], constants['model_C'], \
                                                    constants['agent_C'], constants['other_C']
         self.device = device
@@ -28,11 +20,12 @@ class Environment:
         self.eval_agent = eval_agent
         # For sumo connection
         self.conn_label = 'label_' + str(self.agent_ID)
+        self.vis = vis
 
     def _open_connection(self):
         self._generate_routefile()
         self._generate_addfile()
-        sumoB = checkBinary('sumo')
+        sumoB = checkBinary('sumo' if not self.vis else 'sumo-gui')
         # Need to edit .sumocfg to have the right route file
         self._generate_configfile()
         traci.start([sumoB, "-c", "data/cross_{}.sumocfg".format(self.agent_ID)], label=self.conn_label)

@@ -10,11 +10,12 @@ from agents.agent import Agent
 
 # Code adapted from: Shangtong Zhang (https://github.com/ShangtongZhang)
 class PPOAgent(Agent):
-    def __init__(self, constants, device, env, data_collector, shared_NN, local_NN, optimizer, id):
+    def __init__(self, constants, device, env, data_collector, shared_NN, local_NN, optimizer, id, dont_reset=False):
         super(PPOAgent, self).__init__(constants, device, env, id, data_collector)
         self.NN = local_NN
         self.shared_NN = shared_NN
-        self.state = self.env.reset()
+        if not dont_reset:  # for the vis agent script this messes things up
+            self.state = self.env.reset()
         self.ep_step = 0
         self.opt = optimizer
         self.NN.eval()
