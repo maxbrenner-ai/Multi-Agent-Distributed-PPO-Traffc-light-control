@@ -55,7 +55,7 @@ class Agent:
         results['rew'].append(ep_rew)
         return results
 
-    def eval_episodes(self, current_rollout, ep_count=None):
+    def eval_episodes(self, current_rollout, model_state=None, ep_count=None):
         self._copy_shared_model_to_local()
         results = defaultdict(list)
         for ep in range(self.episode_C['eval_num_eps']):
@@ -64,4 +64,4 @@ class Agent:
         if current_rollout:
             results['rollout'] = [current_rollout]
         results = {k: sum(v) / len(v) for k, v in list(results.items())}
-        self.data_collector.collect_ep(results, ep_count+self.episode_C['eval_num_eps'])
+        self.data_collector.collect_ep(results, model_state, ep_count+self.episode_C['eval_num_eps'] if ep_count is not None else None)

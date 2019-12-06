@@ -4,6 +4,7 @@ import os.path
 from os import path
 from collections import OrderedDict
 import time
+import torch
 
 
 # What data is possible to be collected
@@ -45,7 +46,11 @@ class DataCollector:
         # If overwite then make a new one no matter if it already exists, other wise check the path
         self.df = self._check_if_df_exists() if not overwrite else self._make_df()
         self.verbose = verbose
+        self.save_model_path = None
         # self.lock = Lock()
+
+    def set_save_model_path(self, save_model_path):
+        self.save_model_path = save_model_path
 
     # Check to make sure def keys are in the new_data
     def _check_def_keys(self, new_data):
@@ -55,7 +60,7 @@ class DataCollector:
 
     # This is for collecting info at the end of an ep (or chunk of episodes), check MVP value if eval to see if I should
     # add this set of data, because during eval mode I only save data from eps where the MVP value is better than before
-    def collect_ep(self, new_data, ep_count=None):
+    def collect_ep(self, new_data, model_state=None, ep_count=None):
         self._check_def_keys(new_data)
         new_best = False
         set_values = False
@@ -67,6 +72,9 @@ class DataCollector:
             elif self.info_dict[self.mvp_key]['add_type'] == 'set_on_less' and new_data[self.mvp_key] < self.data[self.mvp_key]:
                 new_best = True
                 set_values = True
+            # Save if new_best
+            if new_best and model_state:
+                self._save_model(model_state)
         else:
             set_values = True
 
@@ -75,11 +83,10 @@ class DataCollector:
 
         self._print(new_data, new_best, ep_count)
 
-    # Vanilla collect, doesnt check anything just adds the data
-    # def collect(self, new_data):
-    #     for key in new_data:
-    #         self._add_value(key, new_data[key])
-    #     self._print(new_data, False)
+    # Whenever (only if eval) a new best is reached
+    def _save_model(self, model_state):
+        if self.save_model_path:
+            torch.save(model_state, self.save_model_path)
 
     def _print(self, new_data, new_best, ep_count):
         if not self.verbose: return

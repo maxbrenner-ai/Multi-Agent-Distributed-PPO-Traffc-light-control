@@ -24,8 +24,8 @@
         "value_loss_coef": 1.0
     },
     "other_C":{
-        "num_agents": 1,
-        "rule_set": "timer",
+        "num_agents": 2,
+        "rule_set": null,
         "rule_set_params": {"length": 10}
     }
 }
