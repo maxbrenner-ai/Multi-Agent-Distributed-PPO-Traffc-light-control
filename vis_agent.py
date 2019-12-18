@@ -1,10 +1,12 @@
-import sys
 import os
+import sys
+
+from agents.PPO_agent import PPOAgent
 from agents.rule_based_agent import RuleBasedAgent
-from environment import Environment
+from environments.single_intersection import SingleIntersectionEnv as Environment
 from models.ppo_model import NN_Model
 from utils.utils import *
-from agents.PPO_agent import PPOAgent
+
 
 def test_agent(agent):
     agent.eval_episode({})
@@ -50,4 +52,4 @@ if __name__ == '__main__':
 
     device = torch.device('cpu')
 
-    run(load_model_file=None)
+    run(load_model_file='grid_3-3.pt')

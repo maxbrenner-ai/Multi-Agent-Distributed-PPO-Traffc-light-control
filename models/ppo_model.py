@@ -6,11 +6,11 @@ from utils.utils import plot_grad_flow, layer_init_filter
 
 # Simple one layer
 class ModelBody(nn.Module):
-    def __init__(self, input_size):
+    def __init__(self, input_size, hidden_size):
         super(ModelBody, self).__init__()
         self.name = 'model_body'
         self.model = nn.Sequential(
-            nn.Linear(input_size, 32),
+            nn.Linear(input_size, hidden_size),
             nn.ReLU()
         )
         self.model.apply(layer_init_filter)
@@ -51,9 +51,8 @@ class CriticModel(nn.Module):
 class NN_Model(nn.Module):
     def __init__(self, state_size, action_size, device):
         super(NN_Model, self).__init__()
-        self.body_model = ModelBody(state_size).to(device)
-        # hidden_size = list(self.body_model.children())[:-1].shape
-        hidden_size = 32
+        hidden_size = 16
+        self.body_model = ModelBody(state_size, hidden_size).to(device)
         self.actor_model = ActorModel(hidden_size, action_size).to(device)
         self.critic_model = CriticModel(hidden_size).to(device)
 

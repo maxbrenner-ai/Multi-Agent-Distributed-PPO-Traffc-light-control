@@ -1,7 +1,6 @@
-import time
 from agents.PPO_agent import PPOAgent
 from agents.rule_based_agent import RuleBasedAgent
-from environment import Environment
+from environments.single_intersection import SingleIntersectionEnv as Environment
 from models.ppo_model import NN_Model
 from utils.utils import *
 
@@ -34,6 +33,8 @@ def eval(id, shared_NN, data_collector, rollout_counter, constants, device):
         # End the eval agent
         if curr_r >= constants['episode_C']['num_train_rollouts'] + 1:
             break
+    # Eval at end
+    agent.eval_episodes(curr_r, model_state=agent.NN.state_dict())
     # Kill connection to sumo server
     agent.env.connection.close()
     # print('...Eval agent {} done'.format(id))

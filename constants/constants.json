@@ -1,31 +1,32 @@
 {
     "episode_C":{
-        "num_train_rollouts": 20,
-        "rollout_length": 64,
-        "eval_freq": 5,
-        "eval_num_eps": 5,
-        "max_ep_steps": 250,
-        "test_num_eps": 20
+        "num_train_rollouts": 250,
+        "rollout_length": 1024,
+        "eval_freq": 98,
+        "eval_num_eps": 25,
+        "max_ep_steps": 500,
+        "test_num_eps": 250
     },
     "model_C":{
-        "state_size": 6,
+        "state_size": 1,
         "action_size": 2
     },
     "agent_C":{
-        "gae_tau": 0.90,
-        "entropy_weight": 0.01,
-        "minibatch_size": 32,
-        "optimization_epochs": 10,
+        "gae_tau": 0.85,
+        "entropy_weight": 0.2,
+        "minibatch_size": 256,
+        "optimization_epochs": 5,
         "ppo_ratio_clip": 0.3,
         "discount": 0.99,
-        "learning_rate": 1e-3,
+        "learning_rate": 1e-4,
         "clip_grads": true,
         "gradient_clip": 1.0,
         "value_loss_coef": 1.0
     },
     "other_C":{
-        "num_agents": 2,
-        "rule_set": "timer",
-        "rule_set_params": {"length": 30}
+        "num_agents": 8,
+        "rule_set": null,
+        "rule_set_params": {"length": 5},
+        "environment": "single_intersection"
     }
 }

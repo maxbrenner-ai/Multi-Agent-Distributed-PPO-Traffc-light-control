@@ -5,6 +5,7 @@ from os import path
 from collections import OrderedDict
 import time
 import torch
+from copy import deepcopy
 
 
 # What data is possible to be collected
@@ -29,7 +30,7 @@ class DataCollector:
         assert len(set(data_keys)) == len(data_keys), 'There are duplicate keys in data_keys: {}'.format(
             self.data_keys)
         # self.manager = Manager()
-        self.data_keys = data_keys
+        self.data_keys = deepcopy(data_keys)
         self.eval_or_test = eval_or_test
         if self.eval_or_test == 'eval':
             assert mvp_key in self.data_keys, 'Need MVP key in the set of sent in data keys: {} not in {}'.format(mvp_key, self.data_keys)

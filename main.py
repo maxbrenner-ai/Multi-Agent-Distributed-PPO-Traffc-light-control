@@ -34,9 +34,7 @@ def run_random_search(verbose, num_diff_experiments, num_repeat_experiment, allo
 
     if not allow_duplicates:
         _, num_choices = get_num_grid_choices(grid)
-        assert num_diff_experiments <= num_choices, \
-            'Allow duplicates is set to false, and num of diff experiments requested is too high ({} > {})'\
-                .format(num_diff_experiments, num_choices)
+        num_diff_experiments = min(num_choices, num_diff_experiments)
     # Make grid choice generator
     grid_choice_gen = grid_choices_random(grid, num_diff_experiments)
     for diff_experiment, constants in enumerate(grid_choice_gen):
@@ -112,13 +110,13 @@ if __name__ == '__main__':
 
     # print('Num cores: {}'.format(mp.cpu_count()))
 
-    run_normal(verbose=True, num_experiments=1, df_path='run-data.xlsx', overwrite=True,
-               data_to_collect=POSSIBLE_DATA, MVP_key='waitingTime', save_model=True, load_model_file='normal_1.pt')
+    # run_normal(verbose=False, num_experiments=3, df_path='run-data.xlsx', overwrite=True,
+    #            data_to_collect=POSSIBLE_DATA, MVP_key='waitingTime', save_model=True, load_model_file=None)
 
-    # run_random_search(verbose=True, num_diff_experiments=2, num_repeat_experiment=1, allow_duplicates=False,
+    # run_random_search(verbose=False, num_diff_experiments=800, num_repeat_experiment=3, allow_duplicates=False,
     #                   df_path='run-data.xlsx', overwrite=True, data_to_collect=POSSIBLE_DATA, MVP_key='waitingTime',
     #                   save_model=True)
 
-    # run_grid_search(verbose=True, num_repeat_experiment=1, df_path='run-data.xlsx', overwrite=True,
-    #                 data_to_collect=POSSIBLE_DATA, MVP_key='waitingTime', save_model=True)
+    run_grid_search(verbose=False, num_repeat_experiment=3, df_path='run-data.xlsx', overwrite=True,
+                    data_to_collect=POSSIBLE_DATA, MVP_key='waitingTime', save_model=True)
 

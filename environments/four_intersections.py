@@ -62,9 +62,10 @@ class Environment:
 
     def get_state(self):
         # State takes info on if there is at least one car waiting on the detector
-        state = [1 if self.connection.lanearea.getJamLengthVehicle(det) > 0 else 0 for det in DETS]
+        # state = [self.connection.lanearea.getJamLengthVehicle(det) for det in DETS]
+        state = []
         # Also add the phase ID to the state
-        state.append(self.connection.trafficlight.getPhase('intersection'))
+        # state.append(self.connection.trafficlight.getPhase('intersection'))
         # Give it the elapsed time of the current phase
         # Todo: Might wanna try somehow not giving it info on a yellow phase
         elapsedPhaseTime = self.connection.trafficlight.getPhaseDuration('intersection') - \
@@ -73,10 +74,29 @@ class Environment:
         state.append(elapsedPhaseTime)
         return np.expand_dims(np.array(state), axis=0)  # Need to have state be 2 dim
 
+    # TODO: THE 36 BELOW IS SPECIFIC TO THE LENGTH OF THE DETECTOR SO REMEMBER TO CHANGE IN THE FUTURE
+    # Halt
     def get_reward(self):
         # Reward is -1 for halted vehicle at intersection, +1 for no halted vehicle
-        return sum([-1 if self.connection.lanearea.getJamLengthVehicle(det) > 0 else 1 for det in DETS])
+        num_stopped = sum([self.connection.lanearea.getJamLengthVehicle(det) for det in DETS])
+        reward = 36 - 2 * num_stopped
+        reward /= 36  # norm.
+        return reward
 
+    # Phase
+    # def _execute_action(self, action):
+    #     # if action is 0, then dont switch, o.w. switch
+    #     # dont allow ANY switching if in yellow phase (ie in process of switching)
+    #     currPhase = self.connection.trafficlight.getPhase('intersection')
+    #     if currPhase == 1 or currPhase == 3:
+    #         return
+    #     elif (action == 0 and currPhase == 0) or (action == 1 and currPhase == 2):  # do nothing
+    #         return
+    #     else:  # switch
+    #         newPhase = currPhase + 1
+    #         self.connection.trafficlight.setPhase('intersection', newPhase)
+
+    # Switch
     def _execute_action(self, action):
         # if action is 0, then dont switch, o.w. switch
         # dont allow ANY switching if in yellow phase (ie in process of switching)
@@ -106,6 +126,7 @@ class Environment:
                     <report>
                         <verbose value="false"/>
                         <no-step-log value="true"/>
+                        <no-warnings value="true"/>
                     </report>
                     
                 </configuration>
@@ -144,7 +165,7 @@ class Environment:
             <route id="{}" edges="inSouth outEast" />
 
             """.format(*routes_array), file=routes)
-            trafficProb = 1 / 10.  # Chance that a vehicle will be generated on a timestep
+            trafficProb = 1 / 4.  # Chance that a vehicle will be generated on a timestep
             for i in range(self.episode_C['max_ep_steps']):
                 if uniform(0, 1) < trafficProb:
                     print(self._add_vehicle(routes_array, i), file=routes)
@@ -153,10 +174,10 @@ class Environment:
     def _generate_addfile(self):
         with open("data/cross_{}.add.xml".format(self.agent_ID), "w") as add:
             print("""<additionals>
-                        <e2Detector id="detNorthIn" lane="inNorth_0" pos="285" endPos="292" freq="100000" friendlyPos="true" file="cross.out"/>
-                        <e2Detector id="detSouthIn" lane="inSouth_0" pos="285" endPos="292" freq="100000" friendlyPos="true" file="cross.out"/>
-                        <e2Detector id="detEastIn" lane="inEast_0" pos="285" endPos="292" freq="100000" friendlyPos="true" file="cross.out"/>
-                        <e2Detector id="detWestIn" lane="inWest_0" pos="285" endPos="292" freq="100000" friendlyPos="true" file="cross.out"/>
+                        <e2Detector id="detNorthIn" lane="inNorth_0" pos="225" endPos="292" freq="100000" friendlyPos="true" file="cross.out"/>
+                        <e2Detector id="detSouthIn" lane="inSouth_0" pos="225" endPos="292" freq="100000" friendlyPos="true" file="cross.out"/>
+                        <e2Detector id="detEastIn" lane="inEast_0" pos="225" endPos="292" freq="100000" friendlyPos="true" file="cross.out"/>
+                        <e2Detector id="detWestIn" lane="inWest_0" pos="225" endPos="292" freq="100000" friendlyPos="true" file="cross.out"/>
                     
                         <edgeData id="edgeData_0" file="edgeData_{}.out.xml"/>
                     </additionals>
