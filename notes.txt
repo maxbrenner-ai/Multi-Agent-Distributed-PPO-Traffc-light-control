@@ -1,3 +1,11 @@
-Rule based timer, length:5, 1/4 traffic: waitingTime 300, rew: 400
+Todo:
+1. Add an adaptive emergency feature to the rule-based agent, where if it the state indicates an intersection has
+    a certain number of cars waiting on NS or EW than switch the light to the appropriate side
+2. Add a "warmup" period which s really just a period at the beginning of each episode where the trained agent
+    does not save the experiences as part of a rollout (its to make it so the env gets in a "normal" state before the agent
+    starts training on it)
 
-Multi-intersection: 1600 waitingTIme, 750 gen steps, 900 total steps
+
+Multi-intersection (750 gen steps, 900 total steps):
+- Rule-based: 1600 waitingTIme, 100 offset, 1.5 NS_mult
+- Agent: 1830 waitingTime, 400 rollouts, 1024 rollout_length (or 400 rollouts, 2048 rollout_length)

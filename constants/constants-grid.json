@@ -1,9 +1,9 @@
 {
     "episode_C":{
-        "num_train_rollouts": [150],
+        "num_train_rollouts": [400],
         "rollout_length": [1024],
-        "eval_freq": [50],
-        "eval_num_eps": [10],
+        "eval_freq": [48],
+        "eval_num_eps": [30],
         "max_ep_steps": [900],
         "generation_ep_steps": [750],
         "test_num_eps": [100]
@@ -24,11 +24,11 @@
     },
     "other_C":{
         "num_agents": [8],
-        "rule_set": ["multi_intersection"],
-        "rule_set_params": [{"cycle_length": 20}, {"cycle_length": 30}, {"cycle_length": 40}],
+        "rule_set": [null],
+        "rule_set_params": [{"cycle_length": 20}],
         "environment": ["four_intersections"],
-        "NS_mult": [1.0, 1.5, 2.0],
+        "NS_mult": [1.5],
         "EW_mult": [1.0],
-        "phase_end_offset": [0, 50, 100]
+        "phase_end_offset": [100]
     }
 }

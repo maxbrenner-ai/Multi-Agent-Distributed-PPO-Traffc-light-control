@@ -107,13 +107,13 @@ if __name__ == '__main__':
 
     # print('Num cores: {}'.format(mp.cpu_count()))
 
-    run_normal(verbose=False, num_experiments=1, df_path='run-data.xlsx', overwrite=True,
-               data_to_collect=POSSIBLE_DATA, MVP_key='waitingTime', save_model=True, load_model_file=None)
+    # run_normal(verbose=False, num_experiments=1, df_path='run-data.xlsx', overwrite=True,
+    #            data_to_collect=POSSIBLE_DATA, MVP_key='waitingTime', save_model=True, load_model_file=None)
 
     # run_random_search(verbose=False, num_diff_experiments=800, num_repeat_experiment=3, allow_duplicates=False,
     #                   df_path='run-data.xlsx', overwrite=True, data_to_collect=POSSIBLE_DATA, MVP_key='waitingTime',
     #                   save_model=True)
 
-    # run_grid_search(verbose=False, num_repeat_experiment=1, df_path='run-data.xlsx', overwrite=True,
-    #                 data_to_collect=POSSIBLE_DATA, MVP_key='waitingTime', save_model=True)
+    run_grid_search(verbose=False, num_repeat_experiment=2, df_path='run-data.xlsx', overwrite=True,
+                    data_to_collect=POSSIBLE_DATA, MVP_key='waitingTime', save_model=True)
 
