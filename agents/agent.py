@@ -16,7 +16,7 @@ class Agent:
     def _reset(self):
         raise NotImplementedError
 
-    def _get_prediction(self, states, actions=None):
+    def _get_prediction(self, states, actions=None, ep_step=None):
         raise NotImplementedError
 
     def _get_action(self, prediction):
@@ -26,14 +26,13 @@ class Agent:
         raise NotImplementedError
 
     # This method gets the ep results i really care about (gets averages)
-    def _read_edge_results(self, file, collectEdgeIDs, results):
+    def _read_edge_results(self, file, results):
         tree = ET.parse(file)
         root = tree.getroot()
         for c in root.iter('edge'):
-            if c.attrib['id'] in collectEdgeIDs:
-                for k, v in list(c.attrib.items()):
-                    if k == 'id': continue
-                    results[k].append(float(v))
+            for k, v in list(c.attrib.items()):
+                if k == 'id': continue
+                results[k].append(float(v))
         return results
 
     # ep_count only for test
@@ -43,15 +42,18 @@ class Agent:
         state = self.env.reset()
         self._reset()
         while True:
-            prediction = self._get_prediction(state)
+            prediction = self._get_prediction(state, ep_step=step)
             action = self._get_action(prediction)
             next_state, reward, done = self.env.step(action, step)
             ep_rew += reward
             if done:
                 break
-            state = np.copy(next_state)
+            if not isinstance(state, dict):
+                state = np.copy(next_state)
+            else:
+                state = next_state
             step += 1
-        results = self._read_edge_results('data/edgeData_{}.out.xml'.format(self.id), ['inEast', 'inNorth', 'inSouth', 'inWest'], results)
+        results = self._read_edge_results('data/edgeData_{}.out.xml'.format(self.id), results)
         results['rew'].append(ep_rew)
         return results
 

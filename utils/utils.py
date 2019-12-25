@@ -11,6 +11,7 @@ import torch
 import random
 import torch.multiprocessing as mp
 from models.simple_timer_rule_set import SimpleTimerRuleSet
+from models.multi_intersection_rule_set import MultiIntersectionRuleSet
 
 
 # Acknowledge: Ilya Kostrikov (https://github.com/ikostrikov)
@@ -139,10 +140,47 @@ def plot_grad_flow(layers, ave_grads, max_grads):
 
 
 def check_rule_set_id(id):
-    assert id in ['timer'], 'RULESET NOT IN POSSIBLE SETS!'
+    assert id in ['timer', 'multi_intersection'], 'RULESET NOT IN POSSIBLE SETS!'
 
 
-def rule_set_creator(id, params):
+def get_rule_set_class(id):
     check_rule_set_id(id)
     if id == 'timer':
-        return SimpleTimerRuleSet(params)
+        return SimpleTimerRuleSet
+    if id == 'multi_intersection':
+        return MultiIntersectionRuleSet
+
+
+# For traffic probability based on episode step
+class PiecewiseLinearFunction:
+    def __init__(self, points):
+        self.points = points
+        self.linear_funcs = []
+        for p in range(len(points)-1):
+            if p % 2 == 1:
+                continue
+            self.linear_funcs.append(LinearFunction(points[p], points[p+1]))
+
+    def get_output(self, x):
+        for lf in self.linear_funcs:
+            output = lf.func(x)
+            if output is not None:
+                return output
+        # If got here something wrong with the lfs sent in
+        assert True is False, 'Something wrong with lfs sent in.'
+
+    def visualize(self):
+        xs = [p[0] for p in self.points]
+        ys = [p[1] for p in self.points]
+        plt.plot(xs, ys)
+        plt.show()
+
+
+class LinearFunction:
+    def __init__(self, p1, p2):
+        x0, y0 = p1
+        x1, y1 = p2
+        domain = (min(x0, x1), max(x0, x1))
+        m = (y1 - y0) / (x1 - x0)
+        b = y0 - m * x0
+        self.func = lambda x: m * x + b if domain[0] <= x < domain[1] else None

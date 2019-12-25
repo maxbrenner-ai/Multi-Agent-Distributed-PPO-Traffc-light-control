@@ -27,8 +27,7 @@ _TEST_DATA = {'rew': {'header': 'test_avg_rew', 'init_value': [], 'add_type': 'a
 class DataCollector:
     # Will make a df or add to an existing df (if a file already exists in the path)
     def __init__(self, data_keys, mvp_key, constants, eval_or_test, df_path, overwrite, verbose):
-        assert len(set(data_keys)) == len(data_keys), 'There are duplicate keys in data_keys: {}'.format(
-            self.data_keys)
+        assert len(set(data_keys)) == len(data_keys), 'There are duplicate keys in data_keys: {}'.format(data_keys)
         # self.manager = Manager()
         self.data_keys = deepcopy(data_keys)
         self.eval_or_test = eval_or_test

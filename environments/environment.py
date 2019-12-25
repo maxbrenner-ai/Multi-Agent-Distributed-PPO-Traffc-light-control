@@ -1,10 +1,5 @@
-from numpy.random import choice
-from numpy.random import uniform
-from sumolib import checkBinary
 import traci
 import numpy as np
-import xml.etree.ElementTree as ET
-import os, sys
 
 
 # Base class
@@ -18,15 +13,33 @@ class Environment:
         # For sumo connection
         self.conn_label = 'label_' + str(self.agent_ID)
         self.vis = vis
+        # For returning either a dict. state (for ruleset agent) or numpy array state
+        self.using_ruleset = True if self.other_C['rule_set'] else False
+        self.phases = None
+
+    def _make_state(self):
+        if self.using_ruleset: return {}
+        return []
+
+    def _add_to_state(self, state, value, key, intersection):
+        if self.using_ruleset:
+            if intersection:
+                if intersection not in state: state[intersection] = {}
+                state[intersection][key] = value
+            else:
+                state[key] = value
+        else:
+            if isinstance(value, list):
+                state.extend(value)
+            else:
+                state.append(value)
+
+    def _process_state(self, state):
+        if not self.using_ruleset: return np.expand_dims(np.array(state), axis=0)
+        return state
 
     def _open_connection(self):
-        self._generate_routefile()
-        self._generate_addfile()
-        sumoB = checkBinary('sumo' if not self.vis else 'sumo-gui')
-        # Need to edit .sumocfg to have the right route file
-        self._generate_configfile()
-        traci.start([sumoB, "-c", "data/cross_{}.sumocfg".format(self.agent_ID)], label=self.conn_label)
-        self.connection = traci.getConnection(self.conn_label)
+        raise NotImplementedError
 
     def _close_connection(self):
         self.connection.close()
@@ -67,27 +80,7 @@ class Environment:
         raise NotImplementedError
 
     def _generate_configfile(self):
-        with open('data/cross_{}.sumocfg'.format(self.agent_ID), 'w') as config:
-            print("""<?xml version="1.0" encoding="UTF-8"?>
-                <configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/sumoConfiguration.xsd">
-                    <input>
-                        <net-file value="cross.net.xml"/>
-                        <route-files value="cross_{}.rou.xml"/>
-                        <additional-files value="cross_{}.add.xml"/>
-                    </input>
-                
-                    <time>
-                        <begin value="0"/>
-                    </time>
-                
-                    <report>
-                        <verbose value="false"/>
-                        <no-step-log value="true"/>
-                        <no-warnings value="true"/>
-                    </report>
-                    
-                </configuration>
-            """.format(self.agent_ID, self.agent_ID), file=config)
+        raise NotImplementedError
 
     def _generate_routefile(self):
         raise NotImplementedError

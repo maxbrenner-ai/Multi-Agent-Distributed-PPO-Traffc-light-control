@@ -1,11 +1,34 @@
 import os
 import sys
-
 from agents.PPO_agent import PPOAgent
 from agents.rule_based_agent import RuleBasedAgent
-from environments.single_intersection import SingleIntersectionEnv as Environment
 from models.ppo_model import NN_Model
 from utils.utils import *
+from environments.single_intersection import SingleIntersectionEnv
+from environments.single_intersection import STATE_SIZE as SI_STATE_SIZE
+from environments.single_intersection import ACTION_SIZE as SI_ACTION_SIZE
+from environments.four_intersections import FourIntersectionEnv
+from environments.four_intersections import STATE_SIZE as FI_STATE_SIZE
+from environments.four_intersections import ACTION_SIZE as FI_ACTION_SIZE
+from copy import deepcopy
+
+
+def get_env(env_id):
+    if env_id == 'single_intersection': return SingleIntersectionEnv
+    elif env_id == 'four_intersections': return FourIntersectionEnv
+    raise AssertionError('Intersection id in constants is wrong.')
+
+
+def get_state_size(env_id):
+    if env_id == 'single_intersection': return SI_STATE_SIZE
+    elif env_id == 'four_intersections': return FI_STATE_SIZE
+    raise AssertionError('Intersection id in constants is wrong.')
+
+
+def get_action_size(env_id):
+    if env_id == 'single_intersection': return SI_ACTION_SIZE
+    elif env_id == 'four_intersections': return FI_ACTION_SIZE
+    raise AssertionError('Intersection id in constants is wrong.')
 
 
 def test_agent(agent):
@@ -14,18 +37,24 @@ def test_agent(agent):
     agent.env.connection.close()
 
 def test_PPO_agent(constants, device, loaded_model):
-    local_NN = NN_Model(constants['model_C']['state_size'], constants['model_C']['action_size'], device).to(device)
+    env_id = constants['other_C']['environment']
+    env = get_env(env_id)(constants, device, 'vis_ppo', eval_agent=True, vis=True)
+    local_NN = NN_Model(get_state_size(env_id), get_action_size(env_id), device).to(device)
     local_NN.load_state_dict(loaded_model)
-    agent = PPOAgent(constants, device, Environment(constants, device, 'vis_ppo', eval_agent=True, vis=True), None, None,
-                     local_NN, None, 'ppo', dont_reset=True)
+    agent = PPOAgent(constants, device, env, None, None, local_NN, None, 'ppo', dont_reset=True)
     test_agent(agent)
 
 # verbose means test prints at end of each batch of eps
 def test_rule_based_agent(constants, device):
+    env = get_env(constants['other_C']['environment'])(constants, device, 'vis_rule_based', eval_agent=True, vis=True)
     # Check rule set
-    rule_set = rule_set_creator(constants['other_C']['rule_set'], constants['other_C']['rule_set_params'])
-    agent = RuleBasedAgent(constants, device, Environment(constants, device, 'vis_rule_based', eval_agent=True, vis=True), rule_set,
-                           None, 'rule_based')
+    rule_set_class = get_rule_set_class(constants['other_C']['rule_set'])
+    rule_set_params = deepcopy(constants['other_C']['rule_set_params'])
+    rule_set_params['phases'] = env.phases
+    net_path = None
+    if constants['other_C']['rule_set'] == 'multi_intersection':
+        net_path = 'data/four_intersection.net.xml'
+    agent = RuleBasedAgent(constants, device, env, rule_set_class(rule_set_params, net_path, constants), None, 'rule_based')
     test_agent(agent)
 
 def run(load_model_file=None):
@@ -52,4 +81,4 @@ if __name__ == '__main__':
 
     device = torch.device('cpu')
 
-    run(load_model_file='grid_3-3.pt')
+    run(load_model_file=None)

@@ -1,15 +1,14 @@
 {
     "episode_C":{
-        "num_train_rollouts": 250,
-        "rollout_length": 1024,
-        "eval_freq": 98,
-        "eval_num_eps": 25,
-        "max_ep_steps": 500,
-        "test_num_eps": 250
+        "num_train_rollouts": 200,
+        "rollout_length": 2048,
+        "eval_freq": 48,
+        "eval_num_eps": 10,
+        "max_ep_steps": 900,
+        "generation_ep_steps": 750,
+        "test_num_eps": 100
     },
     "model_C":{
-        "state_size": 1,
-        "action_size": 2
     },
     "agent_C":{
         "gae_tau": 0.85,
@@ -25,8 +24,11 @@
     },
     "other_C":{
         "num_agents": 8,
-        "rule_set": null,
-        "rule_set_params": {"length": 5},
-        "environment": "single_intersection"
+        "rule_set": "timer",
+        "rule_set_params": {"length": [1, 1, 1, 1]},
+        "environment": "four_intersections",
+        "NS_mult": 1.5,
+        "EW_mult": 1.0,
+        "phase_end_offset": 100
     }
 }

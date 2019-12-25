@@ -23,7 +23,7 @@ class PPOAgent(Agent):
     def _reset(self):
         pass
 
-    def _get_prediction(self, states, actions=None):
+    def _get_prediction(self, states, actions=None, ep_step=None):
         return self.NN(tensor(states, self.device), actions)
 
     def _get_action(self, prediction):

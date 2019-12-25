@@ -1,0 +1,3 @@
+Rule based timer, length:5, 1/4 traffic: waitingTime 300, rew: 400
+
+Multi-intersection: 1600 waitingTIme, 750 gen steps, 900 total steps

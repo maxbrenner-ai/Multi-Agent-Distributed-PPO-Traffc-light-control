@@ -1,15 +1,40 @@
 from agents.PPO_agent import PPOAgent
 from agents.rule_based_agent import RuleBasedAgent
-from environments.single_intersection import SingleIntersectionEnv as Environment
 from models.ppo_model import NN_Model
 from utils.utils import *
+from environments.single_intersection import SingleIntersectionEnv
+from environments.single_intersection import STATE_SIZE as SI_STATE_SIZE
+from environments.single_intersection import ACTION_SIZE as SI_ACTION_SIZE
+from environments.four_intersections import FourIntersectionEnv
+from environments.four_intersections import STATE_SIZE as FI_STATE_SIZE
+from environments.four_intersections import ACTION_SIZE as FI_ACTION_SIZE
+from copy import deepcopy
+
+
+def get_env(env_id):
+    if env_id == 'single_intersection': return SingleIntersectionEnv
+    elif env_id == 'four_intersections': return FourIntersectionEnv
+    raise AssertionError('Intersection id in constants is wrong.')
+
+
+def get_state_size(env_id):
+    if env_id == 'single_intersection': return SI_STATE_SIZE
+    elif env_id == 'four_intersections': return FI_STATE_SIZE
+    raise AssertionError('Intersection id in constants is wrong.')
+
+
+def get_action_size(env_id):
+    if env_id == 'single_intersection': return SI_ACTION_SIZE
+    elif env_id == 'four_intersections': return FI_ACTION_SIZE
+    raise AssertionError('Intersection id in constants is wrong.')
 
 
 # target for multiprocess
 def train(id, shared_NN, data_collector, optimizer, rollout_counter, constants, device):
     # Assumes PPO agent
-    local_NN = NN_Model(constants['model_C']['state_size'], constants['model_C']['action_size'], device).to(device)
-    agent = PPOAgent(constants, device, Environment(constants, device, id, eval_agent=False), None, shared_NN, local_NN, optimizer, id)
+    env_id = constants['other_C']['environment']
+    local_NN = NN_Model(get_state_size(env_id), get_action_size(env_id), device).to(device)
+    agent = PPOAgent(constants, device, get_env(env_id)(constants, device, id, eval_agent=False), None, shared_NN, local_NN, optimizer, id)
     train_step = 0
     while rollout_counter.get() < constants['episode_C']['num_train_rollouts'] + 1:
         agent.train_rollout(train_step)
@@ -22,8 +47,9 @@ def train(id, shared_NN, data_collector, optimizer, rollout_counter, constants, 
 # target for multiprocess
 def eval(id, shared_NN, data_collector, rollout_counter, constants, device):
     # Assumes PPO agent
-    local_NN = NN_Model(constants['model_C']['state_size'], constants['model_C']['action_size'], device).to(device)
-    agent = PPOAgent(constants, device, Environment(constants, device, id, eval_agent=True), data_collector, shared_NN, local_NN, None, id)
+    env_id = constants['other_C']['environment']
+    local_NN = NN_Model(get_state_size(env_id), get_action_size(env_id), device).to(device)
+    agent = PPOAgent(constants, device, get_env(env_id)(constants, device, id, eval_agent=True), data_collector, shared_NN, local_NN, None, id)
     last_eval = 0
     while True:
         curr_r = rollout_counter.get()
@@ -44,8 +70,9 @@ def eval(id, shared_NN, data_collector, rollout_counter, constants, device):
 def test(id, ep_counter, constants, device, agent=None, data_collector=None, shared_NN=None):
     # assume PPO agent if agent=None
     if not agent:
-        local_NN = NN_Model(constants['model_C']['state_size'], constants['model_C']['action_size'], device).to(device)
-        agent = PPOAgent(constants, device, Environment(constants, device, id, eval_agent=True), data_collector,
+        env_id = constants['other_C']['environment']
+        local_NN = NN_Model(get_state_size(env_id), get_action_size(env_id), device).to(device)
+        agent = PPOAgent(constants, device, get_env(env_id)(constants, device, id, eval_agent=True), data_collector,
                          shared_NN, local_NN, None, id)
     while ep_counter.get() < constants['episode_C']['test_num_eps']:
         agent.eval_episodes(None, ep_count=ep_counter.get())
@@ -57,7 +84,8 @@ def test(id, ep_counter, constants, device, agent=None, data_collector=None, sha
 # ======================================================================================================================
 
 def train_PPO_agent(constants, device, data_collector):
-    shared_NN = NN_Model(constants['model_C']['state_size'], constants['model_C']['action_size'], device).to(device)
+    env_id = constants['other_C']['environment']
+    shared_NN = NN_Model(get_state_size(env_id), get_action_size(env_id), device).to(device)
     shared_NN.share_memory()
     optimizer = torch.optim.Adam(shared_NN.parameters(), constants['agent_C']['learning_rate'])
     rollout_counter = Counter()  # To keep track of all the rollouts amongst agents
@@ -77,7 +105,8 @@ def train_PPO_agent(constants, device, data_collector):
         p.join()
 
 def test_PPO_agent(constants, device, data_collector, loaded_model):
-    shared_NN = NN_Model(constants['model_C']['state_size'], constants['model_C']['action_size'], device).to(device)
+    env_id = constants['other_C']['environment']
+    shared_NN = NN_Model(get_state_size(env_id), get_action_size(env_id), device).to(device)
     shared_NN.load_state_dict(loaded_model)
     shared_NN.share_memory()
     ep_counter = Counter()  # Eps across all agents
@@ -93,12 +122,18 @@ def test_PPO_agent(constants, device, data_collector, loaded_model):
 # verbose means test prints at end of each batch of eps
 def test_rule_based_agent(constants, device, data_collector):
     # Check rule set
-    rule_set = rule_set_creator(constants['other_C']['rule_set'], constants['other_C']['rule_set_params'])
+    rule_set_class = get_rule_set_class(constants['other_C']['rule_set'])
     ep_counter = Counter()  # Eps across all agents
     processes = []
     for i in range(constants['other_C']['num_agents']):
         id = 'test_'+str(i)
-        agent = RuleBasedAgent(constants, device, Environment(constants, device, id, eval_agent=True), rule_set, data_collector, id)
+        env = get_env(constants['other_C']['environment'])(constants, device, id, eval_agent=True)
+        rule_set_params = deepcopy(constants['other_C']['rule_set_params'])
+        rule_set_params['phases'] = env.phases
+        net_path = None
+        if constants['other_C']['rule_set'] == 'multi_intersection':
+            net_path = 'data/four_intersection.net.xml'
+        agent = RuleBasedAgent(constants, device, env, rule_set_class(rule_set_params, net_path, constants), data_collector, id)
         p = mp.Process(target=test, args=(id, ep_counter, constants, device, agent, None, None))
         p.start()
         processes.append(p)

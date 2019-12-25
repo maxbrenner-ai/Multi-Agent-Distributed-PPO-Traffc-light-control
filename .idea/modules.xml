@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/MyTraci.iml" filepath="$PROJECT_DIR$/.idea/MyTraci.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../traciTut/.idea/traciTut.iml" filepath="$PROJECT_DIR$/../traciTut/.idea/traciTut.iml" />
     </modules>
   </component>
 </project>

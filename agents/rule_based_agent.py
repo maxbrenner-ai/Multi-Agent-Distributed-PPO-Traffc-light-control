@@ -9,9 +9,10 @@ class RuleBasedAgent(Agent):
     def _reset(self):
         self.rule_set.reset()
 
-    def _get_prediction(self, states, actions=None):
+    def _get_prediction(self, states, actions=None, ep_step=None):
         assert actions == None  # Doesnt want actions
-        assert states.shape[0] == 1, states.shape  # Actually can only handle one state (only needs to)
+        assert isinstance(states, dict)
+        states['ep_step'] = ep_step
         return {'a': self.rule_set(states)}
 
     def _get_action(self, prediction):
