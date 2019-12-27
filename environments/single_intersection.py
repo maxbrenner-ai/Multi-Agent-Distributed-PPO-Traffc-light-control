@@ -33,7 +33,7 @@ class SingleIntersectionEnv(Environment):
         elapsedPhaseTime = self.connection.trafficlight.getPhaseDuration('intersection') - \
                            (self.connection.trafficlight.getNextSwitch('intersection') -
                             self.connection.simulation.getTime())
-        state._add_to_state(state, elapsedPhaseTime, key='elapsedPhaseTime', intersection=None)
+        self._add_to_state(state, elapsedPhaseTime, key='elapsedPhaseTime', intersection=None)
         return self._process_state(state)
 
     # TODO: THE 36 BELOW IS SPECIFIC TO THE LENGTH OF THE DETECTOR SO REMEMBER TO CHANGE IN THE FUTURE
