@@ -8,9 +8,7 @@
         "generation_ep_steps": [750],
         "test_num_eps": [100]
     },
-    "model_C":{
-    },
-    "agent_C":{
+    "ppo_C":{
         "gae_tau": [0.85],
         "entropy_weight": [0.2],
         "minibatch_size": [256],
@@ -22,13 +20,14 @@
         "gradient_clip": [1.0],
         "value_loss_coef": [1.0]
     },
+    "rule_C":{
+        "rule_set": ["cycle"],
+        "rule_set_params": [{"cycle_length": 20, "NS_mult": 1.5, "EW_mult": 1.0, "phase_end_offset": 100}]
+    },
     "other_C":{
-        "num_agents": [8],
-        "rule_set": [null],
-        "rule_set_params": [{"cycle_length": 20}],
-        "environment": ["four_intersections"],
-        "NS_mult": [1.5],
-        "EW_mult": [1.0],
-        "phase_end_offset": [100]
+        "num_workers": [8],
+        "environment": ["4_intersections_rush_hour"],
+        "agent_type": ["ppo"],
+        "single_agent": [false]
     }
 }

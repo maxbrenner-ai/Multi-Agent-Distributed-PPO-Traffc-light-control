@@ -1,5 +1,34 @@
+def get_phases(phase_id):
+    if phase_id == '1_intersection': return single_intersection()
+    if phase_id == '1_intersection_rush_hour': return single_intersection_rush_hour()
+    if phase_id == '4_intersections': return four_intersections()
+    if phase_id == '4_intersections_rush_hour': return four_intersections_rush_hour()
+    else: raise AssertionError('Wrong env/phase id given.')
 
-def rush_hour():
+# Normalize all rem probs for each phase to sum to 1
+def normalize(dic):
+    total = sum([v['rem'] for v in list(dic.values())])
+    for v in list(dic.values()):
+        v['rem'] /= total
+    return dic
+
+def single_intersection():
+    gen = 0.1
+    rem = 0.1
+    probs = {'north': {'gen': gen, 'rem': rem},
+             'south': {'gen': gen, 'rem': rem},
+             'west': {'gen': gen, 'rem': rem},
+             'east': {'gen': gen, 'rem': rem}}
+    phase = [{'duration': 1.0, 'probs': normalize(probs)}]
+    return phase
+
+def single_intersection_rush_hour():
+    raise AssertionError('Wrong env/phase id given.')
+
+def four_intersections():
+    raise AssertionError('Wrong env/phase id given.')
+
+def four_intersections_rush_hour():
     high_rush_hour_prob_gen = 0.2  # When an edge is generating a bunch of vehicles for rush hour
     low_rush_hour_prob_gen = 0.01  # When an edge is on the removal side of rush hour
     side_high_rush_hour_prob_gen = 0.05  # When a side edge is generating for rush hour
@@ -36,13 +65,6 @@ def rush_hour():
                              'eastTop': {'gen': side_high_rush_hour_prob_gen, 'rem': non_rush_hour_prob_rem},
                              'westBottom': {'gen': side_low_rush_hour_prob_gen, 'rem': side_high_rush_hour_prob_rem},
                              'eastBottom': {'gen': side_low_rush_hour_prob_gen, 'rem': side_high_rush_hour_prob_rem}}
-
-    # Normalize all rem probs for each phase to sum to 1
-    def normalize(dic):
-        total = sum([v['rem'] for v in list(dic.values())])
-        for v in list(dic.values()):
-            v['rem'] /= total
-        return dic
 
     # Phase durations are a proportion of the total generation time
     phases = [{'duration': 0.25, 'probs': normalize(first_rush_hour_probs)},

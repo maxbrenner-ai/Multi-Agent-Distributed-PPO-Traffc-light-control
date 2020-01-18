@@ -10,8 +10,8 @@ import torch.nn as nn
 import torch
 import random
 import torch.multiprocessing as mp
-from models.simple_timer_rule_set import SimpleTimerRuleSet
-from models.multi_intersection_rule_set import MultiIntersectionRuleSet
+from models.timer_rule_set import TimerRuleSet
+from models.cycle_rule_set import CycleRuleSet
 
 
 # Acknowledge: Ilya Kostrikov (https://github.com/ikostrikov)
@@ -139,19 +139,15 @@ def plot_grad_flow(layers, ave_grads, max_grads):
     plt.grid(True)
 
 
-def check_rule_set_id(id):
-    assert id in ['timer', 'multi_intersection'], 'RULESET NOT IN POSSIBLE SETS!'
-
-
 def get_rule_set_class(id):
-    check_rule_set_id(id)
     if id == 'timer':
-        return SimpleTimerRuleSet
-    if id == 'multi_intersection':
-        return MultiIntersectionRuleSet
+        return TimerRuleSet
+    if id == 'cycle':
+        return CycleRuleSet
+    raise AssertionError('Ruleset not in possible sets!')
 
 
-# For traffic probability based on episode step
+# For traffic probability based on episode step (NOT USED)
 class PiecewiseLinearFunction:
     def __init__(self, points):
         self.points = points
@@ -184,3 +180,25 @@ class LinearFunction:
         m = (y1 - y0) / (x1 - x0)
         b = y0 - m * x0
         self.func = lambda x: m * x + b if domain[0] <= x < domain[1] else None
+
+
+def get_net_path(constants):
+    phase_id = constants['other_C']['environment']
+    file = 'data/'
+    # Remove _rush_hour from phase_id if its in
+    to_add = phase_id.replace('_rush_hour', '')
+    file += to_add
+    file += '.net.xml'
+    return file
+
+
+def get_state_action_size(PER_AGENT_STATE_SIZE, GLOBAL_STATE_SIZE, ACTION_SIZE, constants):
+    def get_num_agents():
+        prefix = constants['other_C']['environment'].split('_')[0]
+        return int(prefix)
+    single_agent = constants['other_C']['single_agent']
+    # if single agent then make sure to scale up the state size and action size
+    if single_agent:
+        return {'s': int((get_num_agents() * PER_AGENT_STATE_SIZE) + GLOBAL_STATE_SIZE), 'a': int(pow(ACTION_SIZE, get_num_agents()))}
+    else:
+        return {'s': int(PER_AGENT_STATE_SIZE + GLOBAL_STATE_SIZE), 'a': int(ACTION_SIZE)}

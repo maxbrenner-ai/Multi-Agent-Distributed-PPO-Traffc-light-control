@@ -1,18 +1,16 @@
 {
     "episode_C":{
         "num_train_rollouts": 400,
-        "rollout_length": 1024,
-        "eval_freq": 48,
-        "eval_num_eps": 10,
+        "rollout_length": 2048,
+        "eval_freq": 50,
+        "eval_num_eps": 25,
         "max_ep_steps": 900,
         "generation_ep_steps": 750,
-        "test_num_eps": 100
+        "test_num_eps": 50
     },
-    "model_C":{
-    },
-    "agent_C":{
+    "ppo_C":{
         "gae_tau": 0.85,
-        "entropy_weight": 0.2,
+        "entropy_weight": 0.1,
         "minibatch_size": 256,
         "optimization_epochs": 5,
         "ppo_ratio_clip": 0.3,
@@ -22,13 +20,14 @@
         "gradient_clip": 1.0,
         "value_loss_coef": 1.0
     },
+    "rule_C": {
+        "rule_set": "cycle",
+        "rule_set_params": {"cycle_length": 20, "NS_mult": 1.5, "EW_mult": 1.0, "phase_end_offset": 100}
+    },
     "other_C":{
-        "num_agents": 8,
-        "rule_set": "multi_intersection",
-        "rule_set_params": {"cycle_length": 20},
-        "environment": "four_intersections",
-        "NS_mult": 1.5,
-        "EW_mult": 1.0,
-        "phase_end_offset": 100
+        "num_workers": 8,
+        "environment": "4_intersections_rush_hour",
+        "agent_type": "ppo",
+        "single_agent": false
     }
 }

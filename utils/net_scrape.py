@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 import random
 
 
-# Since tie breaks for shortest path will result in deterministic behavior, i make it slightly better with jitter
+# Since tie breaks for shortest path will result in deterministic behavior, i can make it nondeterministic better with jitter
 def get_edge_length_dict(filepath, jitter=False):
     edges = {}
     # Parse through .net.xml file for lengths

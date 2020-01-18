@@ -7,5 +7,5 @@ Todo:
 
 
 Multi-intersection (750 gen steps, 900 total steps):
-- Rule-based: 1600 waitingTIme, 100 offset, 1.5 NS_mult
-- Agent: 1830 waitingTime, 400 rollouts, 1024 rollout_length (or 400 rollouts, 2048 rollout_length)
+- Rule-based: 1600 waitingTime, cycle, 100 offset, 1.5 NS_mult
+- Agent (single and multi): 1770 waitingTime, 400 rollouts, 2048 rollout_length (~30 minutes)

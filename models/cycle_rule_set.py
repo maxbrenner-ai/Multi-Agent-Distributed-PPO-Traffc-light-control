@@ -10,41 +10,37 @@ from random import sample
 2. Assume NS starting config for lights
 '''
 
-class MultiIntersectionRuleSet(RuleSet):
+class CycleRuleSet(RuleSet):
     def __init__(self, params, net_path, constants):
-        super(MultiIntersectionRuleSet, self).__init__(params, net_path)
+        super(CycleRuleSet, self).__init__(params, net_path)
         assert params['phases']
         assert 'cycle_length' in params
         self.net_path = net_path
         self.gen_time = constants['episode_C']['generation_ep_steps']
-        self.NS_mult = constants['other_C']['NS_mult']
-        self.EW_mult = constants['other_C']['EW_mult']
-        self.phase_end_offset = constants['other_C']['phase_end_offset']
+        self.NS_mult = params['NS_mult']
+        self.EW_mult = params['EW_mult']
+        self.phase_end_offset = params['phase_end_offset']
         self.cycle_length = params['cycle_length']
+        self.intersections = get_intersections(self.net_path)
         # [{'start_step': t, 'light_lengths': {intersection: {NS: #, EW: #}...}}...]
         self.phases = self._get_light_lengths(params['phases'])
-        # print(self.phases)
         self.reset()
 
     def reset(self):
         self.curr_phase_indx = -1  # Keep track of current phase
         # Keep track of current light for each inetrsection as well as current time with that light
-        self.info = {intersection: {'curr_light': 'NS', 'curr_time': 0} for intersection in
-                     get_intersections(self.net_path)}
-
-    def _convert_to_dec(self, bin):
-        return int("".join(str(x) for x in bin), 2)
+        self.info = {intersection: {'curr_light': 'NS', 'curr_time': 0} for intersection in self.intersections}
 
     def __call__(self, state):
         old_lights = []
         new_lights = []
-        t = state['ep_step']
+        t = state['sim_step']
         next_phase = False
         if self.curr_phase_indx < len(self.phases)-1 and self.phases[self.curr_phase_indx + 1]['start_step'] == t:
             next_phase = True
             self.curr_phase_indx += 1
 
-        for intersection in list(self.info.keys()):
+        for intersection in self.intersections:
             if self.info[intersection]['curr_light'] == 'EW':
                 assert state[intersection]['curr_phase'] == 1 or state[intersection]['curr_phase'] == 2
             elif self.info[intersection]['curr_light'] == 'NS':
@@ -78,9 +74,7 @@ class MultiIntersectionRuleSet(RuleSet):
             new_lights.append(self.info[intersection]['curr_light'])
         # Compare old lights with new lights
         bin = [0 if x == y else 1 for x, y in zip(old_lights, new_lights)]
-        # Convert to dec
-        dec = self._convert_to_dec(bin)
-        return dec
+        return np.array(bin)
 
     def _get_light_lengths(self, phases):
         NODES_arr, NODES = get_node_arr_and_dict(self.net_path)
@@ -140,10 +134,7 @@ class MultiIntersectionRuleSet(RuleSet):
                 shortest_routes['{}___{}'.format(rem, gen)] = route
 
         def get_weightings(probs):
-            weights = {'intersectionNE': {'NS': 0., 'EW': 0.},
-                       'intersectionSE': {'NS': 0., 'EW': 0.},
-                       'intersectionNW': {'NS': 0., 'EW': 0.},
-                       'intersectionSW': {'NS': 0., 'EW': 0.}}
+            weights = {intersection: {'NS': 0., 'EW': 0.} for intersection in self.intersections}
             for intersection, phases in list(weights.items()):
                 # Collect all routes that include the intersection
                 for v in list(shortest_routes.values()):

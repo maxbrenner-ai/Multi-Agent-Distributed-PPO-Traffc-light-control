@@ -1,61 +1,35 @@
 import os
 import sys
-from agents.PPO_agent import PPOAgent
-from agents.rule_based_agent import RuleBasedAgent
+from workers.ppo_worker import PPOWorker
+from workers.rule_worker import RuleBasedWorker
 from models.ppo_model import NN_Model
 from utils.utils import *
-from environments.single_intersection import SingleIntersectionEnv
-from environments.single_intersection import STATE_SIZE as SI_STATE_SIZE
-from environments.single_intersection import ACTION_SIZE as SI_ACTION_SIZE
-from environments.four_intersections import FourIntersectionEnv
-from environments.four_intersections import STATE_SIZE as FI_STATE_SIZE
-from environments.four_intersections import ACTION_SIZE as FI_ACTION_SIZE
+from environments.intersections import IntersectionsEnv, PER_AGENT_STATE_SIZE, GLOBAL_STATE_SIZE, ACTION_SIZE
 from copy import deepcopy
 
 
-def get_env(env_id):
-    if env_id == 'single_intersection': return SingleIntersectionEnv
-    elif env_id == 'four_intersections': return FourIntersectionEnv
-    raise AssertionError('Intersection id in constants is wrong.')
-
-
-def get_state_size(env_id):
-    if env_id == 'single_intersection': return SI_STATE_SIZE
-    elif env_id == 'four_intersections': return FI_STATE_SIZE
-    raise AssertionError('Intersection id in constants is wrong.')
-
-
-def get_action_size(env_id):
-    if env_id == 'single_intersection': return SI_ACTION_SIZE
-    elif env_id == 'four_intersections': return FI_ACTION_SIZE
-    raise AssertionError('Intersection id in constants is wrong.')
-
-
-def test_agent(agent):
-    agent.eval_episode({})
+def test_worker(worker):
+    worker.eval_episode({})
     # Kill connection to sumo server
-    agent.env.connection.close()
+    worker.env.connection.close()
 
 def test_PPO_agent(constants, device, loaded_model):
-    env_id = constants['other_C']['environment']
-    env = get_env(env_id)(constants, device, 'vis_ppo', eval_agent=True, vis=True)
-    local_NN = NN_Model(get_state_size(env_id), get_action_size(env_id), device).to(device)
+    s_a = get_state_action_size(PER_AGENT_STATE_SIZE, GLOBAL_STATE_SIZE, ACTION_SIZE, constants)
+    env = IntersectionsEnv(constants, device, 'vis_ppo', True, get_net_path(constants), vis=True)
+    local_NN = NN_Model(s_a['s'], s_a['a'], device).to(device)
     local_NN.load_state_dict(loaded_model)
-    agent = PPOAgent(constants, device, env, None, None, local_NN, None, 'ppo', dont_reset=True)
-    test_agent(agent)
+    worker = PPOWorker(constants, device, env, None, None, local_NN, None, 'ppo', dont_reset=True)
+    test_worker(worker)
 
 # verbose means test prints at end of each batch of eps
 def test_rule_based_agent(constants, device):
-    env = get_env(constants['other_C']['environment'])(constants, device, 'vis_rule_based', eval_agent=True, vis=True)
+    env = IntersectionsEnv(constants, device, 'vis_rule_based', True, get_net_path(constants), vis=True)
     # Check rule set
-    rule_set_class = get_rule_set_class(constants['other_C']['rule_set'])
-    rule_set_params = deepcopy(constants['other_C']['rule_set_params'])
+    rule_set_class = get_rule_set_class(constants['rule_C']['rule_set'])
+    rule_set_params = deepcopy(constants['rule_C']['rule_set_params'])
     rule_set_params['phases'] = env.phases
-    net_path = None
-    if constants['other_C']['rule_set'] == 'multi_intersection':
-        net_path = 'data/four_intersection.net.xml'
-    agent = RuleBasedAgent(constants, device, env, rule_set_class(rule_set_params, net_path, constants), None, 'rule_based')
-    test_agent(agent)
+    worker = RuleBasedWorker(constants, device, env, rule_set_class(rule_set_params, get_net_path(constants), constants), None, 'rule_based')
+    test_worker(worker)
 
 def run(load_model_file=None):
     # Load constants
@@ -66,9 +40,9 @@ def run(load_model_file=None):
         loaded_model = torch.load('models/saved_models/' + load_model_file)
 
     if loaded_model:
-        assert not constants['other_C']['rule_set']
         test_PPO_agent(constants, device, loaded_model)
     else:
+        assert constants['other_C']['agent_type'] == 'rule'
         test_rule_based_agent(constants, device)
 
 if __name__ == '__main__':

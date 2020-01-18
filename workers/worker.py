@@ -1,13 +1,14 @@
 import xml.etree.ElementTree as ET
 import numpy as np
 from collections import defaultdict
+from copy import deepcopy
 
 
 # Parent - abstract
-class Agent:
+class Worker:
     def __init__(self, constants, device, env, id, data_collector):
-        self.episode_C, self.model_C, self.agent_C, self.other_C = constants['episode_C'], constants['model_C'], \
-                                                   constants['agent_C'], constants['other_C']
+        self.episode_C, self.ppo_C, self.rule_C, self.other_C = constants['episode_C'], constants['ppo_C'], \
+                                                   constants['rule_C'], constants['other_C']
         self.device = device
         self.env = env
         self.id = id
@@ -51,7 +52,7 @@ class Agent:
             if not isinstance(state, dict):
                 state = np.copy(next_state)
             else:
-                state = next_state
+                state = deepcopy(next_state)
             step += 1
         results = self._read_edge_results('data/edgeData_{}.out.xml'.format(self.id), results)
         results['rew'].append(ep_rew)

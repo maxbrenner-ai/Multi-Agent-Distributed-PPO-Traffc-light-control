@@ -2,7 +2,7 @@ import time
 from utils.utils import *
 from utils.random_search import grid_choices_random
 from utils.grid_search import grid_choices, get_num_grid_choices
-from run_agent_parallel import train_PPO_agent, test_rule_based_agent, test_PPO_agent
+from run_agent_parallel import train_PPO, test_rule_based, test_PPO
 import sys
 import os
 from data_collector import DataCollector, POSSIBLE_DATA
@@ -17,7 +17,7 @@ def run_grid_search(verbose, num_repeat_experiment, df_path=None, overwrite=True
     grid_choice_gen = grid_choices(grid, bases)
     for diff_experiment, constants in enumerate(grid_choice_gen):
         data_collector_obj = DataCollector(data_to_collect, MVP_key, constants,
-                                           'test' if constants['other_C']['rule_set'] else 'eval',
+                                           'test' if constants['other_C']['agent_type'] == 'rule' else 'eval',
                                            df_path, overwrite if diff_experiment == 0 else False, verbose)
 
         for same_experiment in range(num_repeat_experiment):
@@ -39,7 +39,7 @@ def run_random_search(verbose, num_diff_experiments, num_repeat_experiment, allo
     grid_choice_gen = grid_choices_random(grid, num_diff_experiments)
     for diff_experiment, constants in enumerate(grid_choice_gen):
         data_collector_obj = DataCollector(data_to_collect, MVP_key, constants,
-                                           'test' if constants['other_C']['rule_set'] else 'eval',
+                                           'test' if constants['other_C']['agent_type'] == 'rule' else 'eval',
                                            df_path, overwrite if diff_experiment == 0 else False, verbose)
 
         for same_experiment in range(num_repeat_experiment):
@@ -62,7 +62,7 @@ def run_normal(verbose, num_experiments=1, df_path=None, overwrite=True, data_to
     # Load constants
     constants = load_constants('constants/constants.json')
     data_collector_obj = DataCollector(data_to_collect, MVP_key, constants,
-                                       'test' if constants['other_C']['rule_set'] or load_model_file else 'eval',
+                                       'test' if constants['other_C']['agent_type'] == 'rule' or load_model_file else 'eval',
                                        df_path, overwrite, verbose)
 
     loaded_model = None
@@ -79,12 +79,12 @@ def run_experiment(exp1, exp2, constants, data_collector_obj, loaded_model=None)
     data_collector_obj.start_timer()
 
     if loaded_model:
-        assert not constants['other_C']['rule_set']
-        test_PPO_agent(constants, device, data_collector_obj, loaded_model)
-    elif not constants['other_C']['rule_set']:
-        train_PPO_agent(constants, device, data_collector_obj)
+        test_PPO(constants, device, data_collector_obj, loaded_model)
+    elif constants['other_C']['agent_type'] == 'ppo':
+        train_PPO(constants, device, data_collector_obj)
     else:
-        test_rule_based_agent(constants, device, data_collector_obj)
+        assert constants['other_C']['agent_type'] == 'rule'
+        test_rule_based(constants, device, data_collector_obj)
 
     # Save and Refresh the data_collector
     data_collector_obj.end_timer(printIt=True)

@@ -150,8 +150,8 @@ class DataCollector:
             for k, v in list(dic.items()):
                 self.data[append_letter + '_' + k] = v
         add_hyp_param_dict('E', self.constants['episode_C'])
-        add_hyp_param_dict('M', self.constants['model_C'])
-        add_hyp_param_dict('A', self.constants['agent_C'])
+        add_hyp_param_dict('P', self.constants['ppo_C'])
+        add_hyp_param_dict('R', self.constants['rule_C'])
         add_hyp_param_dict('O', self.constants['other_C'])
         return self.data
 
