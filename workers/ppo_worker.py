@@ -45,7 +45,7 @@ class PPOWorker(Worker):
             start_step_time = time.time()
             prediction = self._get_prediction(state)
             action = self._get_action(prediction)
-            next_state, reward, done = self.env.step(action, self.ep_step)
+            next_state, reward, done = self.env.step(action, self.ep_step, get_global_reward=False)
 
             self.ep_step += 1
             if done:
@@ -54,7 +54,7 @@ class PPOWorker(Worker):
                 self.ep_step = 0
 
             storage.add(prediction)
-            storage.add({'r': tensor(self._stack(reward), self.device).unsqueeze(-1),
+            storage.add({'r': tensor(reward, self.device).unsqueeze(-1),
                          'm': tensor(self._stack(1 - done), self.device).unsqueeze(-1),
                          's': tensor(state, self.device)})
             # print('-------------')

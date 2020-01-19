@@ -80,13 +80,13 @@ class Environment:
             action = [int(c) for c in action]
         return {intersection: action[i] for i, intersection in enumerate(self.intersections)}
 
-    def step(self, a, ep_step, def_agent=False):
+    def step(self, a, ep_step, get_global_reward, def_agent=False):
         action = self._process_action(a)
         if not def_agent:
             self._execute_action(action)
         self.connection.simulationStep()
         s_ = self.get_state()
-        r = self.get_reward()
+        r = self.get_reward(get_global_reward)
         # Check if done (and if so reset)
         done = False
         if self.connection.simulation.getMinExpectedNumber() <= 0 or ep_step >= self.episode_C['max_ep_steps']:
@@ -101,7 +101,7 @@ class Environment:
     def get_state(self):
         raise NotImplementedError
 
-    def get_reward(self):
+    def get_reward(self, get_global):
         raise NotImplementedError
 
     def _execute_action(self, action):

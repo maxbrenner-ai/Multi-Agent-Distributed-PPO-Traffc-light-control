@@ -10,7 +10,7 @@
     },
     "ppo_C":{
         "gae_tau": 0.85,
-        "entropy_weight": 0.1,
+        "entropy_weight": 0.2,
         "minibatch_size": 256,
         "optimization_epochs": 5,
         "ppo_ratio_clip": 0.3,
@@ -28,6 +28,7 @@
         "num_workers": 8,
         "environment": "4_intersections_rush_hour",
         "agent_type": "ppo",
-        "single_agent": false
+        "single_agent": false,
+        "reward_discount": 0.2
     }
 }

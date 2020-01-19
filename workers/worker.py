@@ -45,7 +45,7 @@ class Worker:
         while True:
             prediction = self._get_prediction(state, ep_step=step)
             action = self._get_action(prediction)
-            next_state, reward, done = self.env.step(action, step)
+            next_state, reward, done = self.env.step(action, step, get_global_reward=True)
             ep_rew += reward
             if done:
                 break

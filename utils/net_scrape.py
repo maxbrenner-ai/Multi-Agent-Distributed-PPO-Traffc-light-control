@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 import random
+import numpy as np
 
 
 # Since tie breaks for shortest path will result in deterministic behavior, i can make it nondeterministic better with jitter
@@ -62,3 +63,28 @@ def get_node_arr_and_dict(filepath):
         dic[node] = i
         i += 1
     return arr, dic
+
+
+# For calc. global/localized discounted rewards
+# {intA: {intA: 0, intB: 5, ...} ...}
+def get_cartesian_intersection_distances(filepath):
+    # First gather the positions
+    tree = ET.parse(filepath)
+    root = tree.getroot()
+    intersection_positions = {}
+    for c in root.iter('junction'):
+        node = c.attrib['id']
+        # If not intersection then continue
+        if c.attrib['type'] == 'internal' or not 'intersection' in node:
+            continue
+        x = float(c.attrib['x'])
+        y = float(c.attrib['y'])
+        intersection_positions[node] = np.array([x, y])
+    # Second calc. euclidean distances
+    distances = {}
+    for outer_k, outer_v in list(intersection_positions.items()):
+        distances[outer_k] = {}
+        for inner_k, inner_v in list(intersection_positions.items()):
+            dist = np.linalg.norm(outer_v - inner_v)
+            distances[outer_k][inner_k] = dist
+    return distances

@@ -42,6 +42,8 @@ class IntersectionsEnv(Environment):
         self.phases = get_phases(self.other_C['environment'])
         self.node_edge_dic = get_node_edge_dict(self.net_path)
         self._generate_addfile()
+        # Calc intersection distances for reward calc
+        self.distances = get_cartesian_intersection_distances(net_path)
 
     def _open_connection(self):
         self._generate_routefile()
@@ -89,13 +91,51 @@ class IntersectionsEnv(Environment):
 
     # Halt
     # ASSUMPTION: this returns the global reward (for now)
-    def get_reward(self):
-        # Reward is -1 for halted vehicle at intersection, +1 for no halted vehicle
-        num_stopped = sum([self.connection.lanearea.getJamLengthVehicle(det) for det in self.all_dets])
-        reward = (len(self.all_dets) * DET_LENGTH_IN_CARS) - 2 * num_stopped
-        reward /= (len(self.all_dets) * DET_LENGTH_IN_CARS)  # norm.
-        assert -1.001 <= reward <= 1.001
-        return reward
+    # def get_reward(self, get_global):
+    #     # Reward is -1 for halted vehicle at intersection, +1 for no halted vehicle
+    #     num_stopped = sum([self.connection.lanearea.getJamLengthVehicle(det) for det in self.all_dets])
+    #     reward = (len(self.all_dets) * DET_LENGTH_IN_CARS) - 2 * num_stopped
+    #     reward /= (len(self.all_dets) * DET_LENGTH_IN_CARS)  # norm.
+    #     assert -1.001 <= reward <= 1.001
+    #     return reward
+
+    # Allows for interpolation between local and global reward given a reward disc. factor
+    # get_global is used to signal returning the global rew as a single value for the eval runs, ow an array is returned
+    def get_reward(self, get_global):
+        # Get local rewards for each intersection
+        local_rewards = {}
+        for intersection in self.intersections:
+            dets = self.intersection_dets[intersection]
+            dets_rew = sum([self.connection.lanearea.getJamLengthVehicle(det) for det in dets])
+            dets_rew = (len(dets) * DET_LENGTH_IN_CARS) - 2 * dets_rew
+            # todo: test performance of normalizing by len of dets NOT all dets (make sure to remove assertian below)
+            dets_rew /= (len(self.all_dets) * DET_LENGTH_IN_CARS)
+            local_rewards[intersection] = dets_rew
+        # If getting global then return the sum (singe value)
+        if get_global:
+            ret = sum([local_rewards[i] for i in self.intersections])
+            assert -1.001 <= ret <= 1.001
+            return ret
+        # Disc edge cases
+        if self.other_C['reward_interpolation'] == 0.:  # Local
+            ret = np.array([r for r in list(local_rewards.values())])
+            return ret
+        if self.other_C['reward_interpolation'] == 1.:  # global
+            gr = sum([local_rewards[i] for i in self.intersections])
+            ret = np.array([gr] * len(self.intersections))
+            return ret
+        # O.w. interpolation
+        arr = []
+        for intersection in self.intersections:
+            dists = self.distances[intersection]
+            max_dist = max([d for d in list(dists.values())])
+            local_rew = 0.
+            for inner_int in self.intersections:
+                d = dists[inner_int]
+                r = local_rewards[inner_int]
+                local_rew += pow(self.other_C['reward_interpolation'], (d / max_dist)) * r
+            arr.append(local_rew)
+        return np.array(arr)
 
     # Switch
     # action: {"intersectionNW": 0 or 1, .... }
