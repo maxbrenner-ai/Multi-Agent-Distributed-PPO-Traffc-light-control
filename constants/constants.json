@@ -1,7 +1,7 @@
 {
     "episode_C":{
         "num_train_rollouts": 400,
-        "rollout_length": 2048,
+        "rollout_length": 245,
         "eval_freq": 50,
         "eval_num_eps": 25,
         "max_ep_steps": 900,
@@ -25,10 +25,10 @@
         "rule_set_params": {"cycle_length": 20, "NS_mult": 1.5, "EW_mult": 1.0, "phase_end_offset": 100}
     },
     "other_C":{
-        "num_workers": 8,
+        "num_workers": 1,
         "environment": "4_intersections_rush_hour",
         "agent_type": "ppo",
-        "single_agent": false,
-        "reward_discount": 0.2
+        "single_agent": true,
+        "reward_interpolation": 0.2
     }
 }

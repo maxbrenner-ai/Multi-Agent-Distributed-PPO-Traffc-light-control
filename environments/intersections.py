@@ -116,6 +116,16 @@ class IntersectionsEnv(Environment):
             ret = sum([local_rewards[i] for i in self.intersections])
             assert -1.001 <= ret <= 1.001
             return ret
+        # if single intersection
+        if len(self.intersections) == 1:
+            ret = list(local_rewards.values())[0]
+            assert -1.001 <= ret <= 1.001
+            return np.array([ret])
+        # If single agent
+        if self.single_agent:
+            ret = sum([local_rewards[i] for i in self.intersections])
+            assert -1.001 <= ret <= 1.001
+            return np.array([ret])
         # Disc edge cases
         if self.other_C['reward_interpolation'] == 0.:  # Local
             ret = np.array([r for r in list(local_rewards.values())])

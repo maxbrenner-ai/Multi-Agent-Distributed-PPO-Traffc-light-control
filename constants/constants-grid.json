@@ -1,6 +1,6 @@
 {
     "episode_C":{
-        "num_train_rollouts": [400],
+        "num_train_rollouts": [350],
         "rollout_length": [2048],
         "eval_freq": [50],
         "eval_num_eps": [25],

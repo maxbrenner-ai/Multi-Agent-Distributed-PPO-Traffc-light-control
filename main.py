@@ -114,6 +114,6 @@ if __name__ == '__main__':
     #                   df_path='run-data.xlsx', overwrite=True, data_to_collect=POSSIBLE_DATA, MVP_key='waitingTime',
     #                   save_model=True)
 
-    # run_grid_search(verbose=False, num_repeat_experiment=2, df_path='run-data.xlsx', overwrite=True,
+    # run_grid_search(verbose=False, num_repeat_experiment=3, df_path='run-data.xlsx', overwrite=True,
     #                 data_to_collect=POSSIBLE_DATA, MVP_key='waitingTime', save_model=True)
 
