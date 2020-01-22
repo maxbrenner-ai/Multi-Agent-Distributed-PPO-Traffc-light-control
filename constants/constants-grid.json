@@ -1,14 +1,18 @@
 {
-    "episode_C":{
-        "num_train_rollouts": [350],
+    "episode":{
+        "num_train_rollouts": [400],
         "rollout_length": [2048],
         "eval_freq": [50],
         "eval_num_eps": [25],
-        "max_ep_steps": [900],
-        "generation_ep_steps": [750],
+        "max_ep_steps": [1250],
+        "generation_ep_steps": [1000],
         "test_num_eps": [50]
     },
-    "ppo_C":{
+    "agent": {
+        "agent_type": ["ppo"],
+        "single_agent": [false]
+    },
+    "ppo":{
         "gae_tau": [0.85],
         "entropy_weight": [0.2],
         "minibatch_size": [256],
@@ -20,15 +24,20 @@
         "gradient_clip": [1.0],
         "value_loss_coef": [1.0]
     },
-    "rule_C":{
+    "rule": {
         "rule_set": ["cycle"],
-        "rule_set_params": [{"cycle_length": 20, "NS_mult": 1.5, "EW_mult": 1.0, "phase_end_offset": 100}]
+        "rule_set_params": [{"cycle_length": 20, "NS_mult": 1.0, "EW_mult": 1.0, "phase_end_offset": 100}]
     },
-    "other_C":{
-        "num_workers": [8],
-        "environment": ["4_intersections_rush_hour"],
-        "agent_type": ["ppo"],
-        "single_agent": [false],
-        "reward_interpolation": [0, 0.2, 0.5, 0.8, 1]
+    "environment": {
+        "shape": [[3, 3]],
+        "rush_hour": [false],
+        "uniform_generation_probability": [0.05]
+    },
+    "multiagent": {
+        "reward_interpolation": [0, 0.2, 0.5, 0.8, 1],
+        "state_interpolation": [0]
+    },
+    "parallel":{
+        "num_workers": [8]
     }
 }

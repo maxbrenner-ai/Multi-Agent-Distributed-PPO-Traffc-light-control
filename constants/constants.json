@@ -1,15 +1,15 @@
 {
     "episode":{
         "num_train_rollouts": 400,
-        "rollout_length": 245,
+        "rollout_length": 2048,
         "eval_freq": 50,
         "eval_num_eps": 25,
-        "max_ep_steps": 1200,
+        "max_ep_steps": 1250,
         "generation_ep_steps": 1000,
         "test_num_eps": 50
     },
     "agent": {
-        "agent_type": "rule",
+        "agent_type": "ppo",
         "single_agent": false
     },
     "ppo":{
@@ -31,10 +31,10 @@
     "environment": {
         "shape": [3, 3],
         "rush_hour": false,
-        "uniform_generation_probability": 0.1
+        "uniform_generation_probability": 0.05
     },
     "multiagent": {
-        "reward_interpolation": 0.2,
+        "reward_interpolation": 0,
         "state_interpolation": 0.2
     },
     "parallel":{
