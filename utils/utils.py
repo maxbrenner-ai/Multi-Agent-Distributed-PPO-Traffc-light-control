@@ -183,20 +183,18 @@ class LinearFunction:
 
 
 def get_net_path(constants):
-    phase_id = constants['other_C']['environment']
+    shape = constants['environment']['shape']
     file = 'data/'
-    # Remove _rush_hour from phase_id if its in
-    to_add = phase_id.replace('_rush_hour', '')
-    file += to_add
-    file += '.net.xml'
+    file += '{}_{}_'.format(shape[0], shape[1])
+    file += 'intersections.net.xml'
     return file
 
 
 def get_state_action_size(PER_AGENT_STATE_SIZE, GLOBAL_STATE_SIZE, ACTION_SIZE, constants):
     def get_num_agents():
-        prefix = constants['other_C']['environment'].split('_')[0]
-        return int(prefix)
-    single_agent = constants['other_C']['single_agent']
+        shape = constants['environment']['shape']
+        return int(shape[0] * shape[1])
+    single_agent = constants['agent']['single_agent']
     # if single agent then make sure to scale up the state size and action size
     if single_agent:
         return {'s': int((get_num_agents() * PER_AGENT_STATE_SIZE) + GLOBAL_STATE_SIZE), 'a': int(pow(ACTION_SIZE, get_num_agents()))}

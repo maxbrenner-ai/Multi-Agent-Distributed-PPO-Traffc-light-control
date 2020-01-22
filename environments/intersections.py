@@ -3,10 +3,7 @@ import random
 from sumolib import checkBinary
 import traci
 import numpy as np
-import xml.etree.ElementTree as ET
 from environments.environment import Environment
-import os, sys
-from utils.utils import PiecewiseLinearFunction
 from collections import OrderedDict
 from utils.env_phases import get_phases, get_current_phase_probs
 from utils.net_scrape import *
@@ -15,8 +12,7 @@ from utils.net_scrape import *
 '''
 Assumptions:
 1. Single lane roads
-2. Even number of intersections (Except for the case of one intersection)
-3. Grid like layout, where gen or rem nodes only have one possible edge in and out
+2. Grid like layout, where gen or rem nodes only have one possible edge in and out
 '''
 
 # per agent
@@ -33,13 +29,16 @@ DET_LENGTH_IN_CARS = 20
 def get_rel_net_path(phase_id):
     return phase_id.replace('_rush_hour', '') + '.net.xml'
 
+def get_env_name(constants):
+    shape = constants['environment']['shape']
+    return '{}_{}_intersections'.format(shape[0], shape[1])
 
 class IntersectionsEnv(Environment):
     def __init__(self, constants, device, agent_ID, eval_agent, net_path, vis=False):
         super(IntersectionsEnv, self).__init__(constants, device, agent_ID, eval_agent, net_path, vis)
         # For file names
-        self.env_name = self.other_C['environment']
-        self.phases = get_phases(self.other_C['environment'])
+        self.env_name = get_env_name(constants)
+        self.phases = get_phases(constants['environment'], net_path)
         self.node_edge_dic = get_node_edge_dict(self.net_path)
         self._generate_addfile()
         # Calc intersection distances for reward calc
@@ -55,7 +54,7 @@ class IntersectionsEnv(Environment):
 
     def _get_sim_step(self, normalize):
         sim_step = self.connection.simulation.getTime()
-        if normalize: sim_step /= (self.episode_C['max_ep_steps'] / 10.)  # Normalized between 0 and 10
+        if normalize: sim_step /= (self.constants['episode']['max_ep_steps'] / 10.)  # Normalized between 0 and 10
         return sim_step
 
     # todo: Might need to normalize vals especially elapsed time!!!!!!!!!!!!!!!!!!!
@@ -102,6 +101,7 @@ class IntersectionsEnv(Environment):
     # Allows for interpolation between local and global reward given a reward disc. factor
     # get_global is used to signal returning the global rew as a single value for the eval runs, ow an array is returned
     def get_reward(self, get_global):
+        reward_interpolation = self.constants['multiagent']['reward_interpolation']
         # Get local rewards for each intersection
         local_rewards = {}
         for intersection in self.intersections:
@@ -127,10 +127,10 @@ class IntersectionsEnv(Environment):
             assert -1.001 <= ret <= 1.001
             return np.array([ret])
         # Disc edge cases
-        if self.other_C['reward_interpolation'] == 0.:  # Local
+        if reward_interpolation == 0.:  # Local
             ret = np.array([r for r in list(local_rewards.values())])
             return ret
-        if self.other_C['reward_interpolation'] == 1.:  # global
+        if reward_interpolation == 1.:  # global
             gr = sum([local_rewards[i] for i in self.intersections])
             ret = np.array([gr] * len(self.intersections))
             return ret
@@ -143,7 +143,7 @@ class IntersectionsEnv(Environment):
             for inner_int in self.intersections:
                 d = dists[inner_int]
                 r = local_rewards[inner_int]
-                local_rew += pow(self.other_C['reward_interpolation'], (d / max_dist)) * r
+                local_rew += pow(reward_interpolation, (d / max_dist)) * r
             arr.append(local_rew)
         return np.array(arr)
 
@@ -219,8 +219,8 @@ class IntersectionsEnv(Environment):
             <vType id="car" accel="0.8" decel="4.5" sigma="0.5" length="{}" minGap="{}" maxSpeed="15" guiShape="passenger"/>
         """.format(VEH_LENGTH, VEH_MIN_GAP)
         # Add the vehicles
-        for t in range(self.episode_C['generation_ep_steps']):
-            routes_string = self._add_vehicle(t, get_current_phase_probs(t, self.phases, self.episode_C['generation_ep_steps']), routes_string)
+        for t in range(self.constants['episode']['generation_ep_steps']):
+            routes_string = self._add_vehicle(t, get_current_phase_probs(t, self.phases, self.constants['episode']['generation_ep_steps']), routes_string)
         routes_string += '</routes>'
         # Output
         with open("data/{}_{}.rou.xml".format(self.env_name, self.agent_ID), "w") as routes:

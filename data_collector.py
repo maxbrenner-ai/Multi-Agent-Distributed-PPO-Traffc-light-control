@@ -149,10 +149,13 @@ class DataCollector:
         def add_hyp_param_dict(append_letter, dic):
             for k, v in list(dic.items()):
                 self.data[append_letter + '_' + k] = v
-        add_hyp_param_dict('E', self.constants['episode_C'])
-        add_hyp_param_dict('P', self.constants['ppo_C'])
-        add_hyp_param_dict('R', self.constants['rule_C'])
-        add_hyp_param_dict('O', self.constants['other_C'])
+        add_hyp_param_dict('Ep', self.constants['episode'])
+        add_hyp_param_dict('A', self.constants['agent'])
+        add_hyp_param_dict('P', self.constants['ppo'])
+        add_hyp_param_dict('R', self.constants['rule'])
+        add_hyp_param_dict('En', self.constants['environment'])
+        add_hyp_param_dict('M', self.constants['multiagent'])
+        add_hyp_param_dict('P', self.constants['parallel'])
         return self.data
 
     def _append_to_df(self):

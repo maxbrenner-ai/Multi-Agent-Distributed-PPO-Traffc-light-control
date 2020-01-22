@@ -16,7 +16,7 @@ class CycleRuleSet(RuleSet):
         assert params['phases']
         assert 'cycle_length' in params
         self.net_path = net_path
-        self.gen_time = constants['episode_C']['generation_ep_steps']
+        self.gen_time = constants['episode']['generation_ep_steps']
         self.NS_mult = params['NS_mult']
         self.EW_mult = params['EW_mult']
         self.phase_end_offset = params['phase_end_offset']

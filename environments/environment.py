@@ -6,8 +6,7 @@ from utils.net_scrape import *
 # Base class
 class Environment:
     def __init__(self, constants, device, agent_ID, eval_agent, net_path, vis=False):
-        self.episode_C, self.ppo_C, self.rule_C, self.other_C = constants['episode_C'], constants['ppo_C'], \
-                                                   constants['rule_C'], constants['other_C']
+        self.constants = constants
         self.device = device
         self.agent_ID = agent_ID
         self.eval_agent = eval_agent
@@ -16,8 +15,8 @@ class Environment:
         self.net_path = net_path
         self.vis = vis
         self.phases = None
-        self.agent_type = self.other_C['agent_type']
-        self.single_agent = self.other_C['single_agent']
+        self.agent_type = constants['agent']['agent_type']
+        self.single_agent = constants['agent']['single_agent']
         self.intersections = get_intersections(net_path)
         # for adding to state
         self.intersections_index = {intersection: i for i, intersection in enumerate(self.intersections)}
@@ -89,7 +88,7 @@ class Environment:
         r = self.get_reward(get_global_reward)
         # Check if done (and if so reset)
         done = False
-        if self.connection.simulation.getMinExpectedNumber() <= 0 or ep_step >= self.episode_C['max_ep_steps']:
+        if self.connection.simulation.getMinExpectedNumber() <= 0 or ep_step >= self.constants['episode']['max_ep_steps']:
             # Just close the conn without restarting if eval agent
             if self.eval_agent:
                 self._close_connection()

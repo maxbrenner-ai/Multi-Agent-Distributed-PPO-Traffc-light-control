@@ -7,8 +7,7 @@ from copy import deepcopy
 # Parent - abstract
 class Worker:
     def __init__(self, constants, device, env, id, data_collector):
-        self.episode_C, self.ppo_C, self.rule_C, self.other_C = constants['episode_C'], constants['ppo_C'], \
-                                                   constants['rule_C'], constants['other_C']
+        self.constants = constants
         self.device = device
         self.env = env
         self.id = id
@@ -61,10 +60,10 @@ class Worker:
     def eval_episodes(self, current_rollout, model_state=None, ep_count=None):
         self._copy_shared_model_to_local()
         results = defaultdict(list)
-        for ep in range(self.episode_C['eval_num_eps']):
+        for ep in range(self.constants['episode']['eval_num_eps']):
             results = self.eval_episode(results)
         # So I could add the data from each ep to the data collector but I like the smoothing effect this has
         if current_rollout:
             results['rollout'] = [current_rollout]
         results = {k: sum(v) / len(v) for k, v in list(results.items())}
-        self.data_collector.collect_ep(results, model_state, ep_count+self.episode_C['eval_num_eps'] if ep_count is not None else None)
+        self.data_collector.collect_ep(results, model_state, ep_count+self.constants['episode']['eval_num_eps'] if ep_count is not None else None)

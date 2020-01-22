@@ -88,3 +88,15 @@ def get_cartesian_intersection_distances(filepath):
             dist = np.linalg.norm(outer_v - inner_v)
             distances[outer_k][inner_k] = dist
     return distances
+
+
+def get_non_intersections(filepath):
+    tree = ET.parse(filepath)
+    root = tree.getroot()
+    arr = []
+    for c in root.iter('junction'):
+        node = c.attrib['id']
+        if c.attrib['type'] == 'internal' or 'intersection' in node:
+            continue
+        arr.append(node)
+    return arr

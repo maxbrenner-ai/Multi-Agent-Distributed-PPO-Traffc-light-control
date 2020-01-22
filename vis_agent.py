@@ -25,8 +25,8 @@ def test_PPO_agent(constants, device, loaded_model):
 def test_rule_based_agent(constants, device):
     env = IntersectionsEnv(constants, device, 'vis_rule_based', True, get_net_path(constants), vis=True)
     # Check rule set
-    rule_set_class = get_rule_set_class(constants['rule_C']['rule_set'])
-    rule_set_params = deepcopy(constants['rule_C']['rule_set_params'])
+    rule_set_class = get_rule_set_class(constants['rule']['rule_set'])
+    rule_set_params = deepcopy(constants['rule']['rule_set_params'])
     rule_set_params['phases'] = env.phases
     worker = RuleBasedWorker(constants, device, env, rule_set_class(rule_set_params, get_net_path(constants), constants), None, 'rule_based')
     test_worker(worker)
@@ -42,7 +42,7 @@ def run(load_model_file=None):
     if loaded_model:
         test_PPO_agent(constants, device, loaded_model)
     else:
-        assert constants['other_C']['agent_type'] == 'rule'
+        assert constants['agent']['agent_type'] == 'rule'
         test_rule_based_agent(constants, device)
 
 if __name__ == '__main__':

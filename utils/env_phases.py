@@ -1,9 +1,12 @@
-def get_phases(phase_id):
-    if phase_id == '1_intersection': return single_intersection()
-    if phase_id == '1_intersection_rush_hour': return single_intersection_rush_hour()
-    if phase_id == '4_intersections': return four_intersections()
-    if phase_id == '4_intersections_rush_hour': return four_intersections_rush_hour()
-    else: raise AssertionError('Wrong env/phase id given.')
+from utils.net_scrape import *
+
+
+def get_phases(environment_C, net_path):
+    if environment_C['rush_hour']:
+        if environment_C['shape'] == [2, 2]: return two_two_intersections_rush_hour()
+        else: raise AssertionError('Wrong env given for rush hour.')
+    else:
+        return uniform_intersections(environment_C['uniform_generation_probability'], net_path)
 
 # Normalize all rem probs for each phase to sum to 1
 def normalize(dic):
@@ -12,23 +15,15 @@ def normalize(dic):
         v['rem'] /= total
     return dic
 
-def single_intersection():
-    gen = 0.1
-    rem = 0.1
-    probs = {'north': {'gen': gen, 'rem': rem},
-             'south': {'gen': gen, 'rem': rem},
-             'west': {'gen': gen, 'rem': rem},
-             'east': {'gen': gen, 'rem': rem}}
+def uniform_intersections(gen, net_path):
+    node_arr = get_non_intersections(net_path)
+    probs = {}
+    for node in node_arr:
+        probs[node] = {'gen': gen, 'rem': 1}
     phase = [{'duration': 1.0, 'probs': normalize(probs)}]
     return phase
 
-def single_intersection_rush_hour():
-    raise AssertionError('Wrong env/phase id given.')
-
-def four_intersections():
-    raise AssertionError('Wrong env/phase id given.')
-
-def four_intersections_rush_hour():
+def two_two_intersections_rush_hour():
     high_rush_hour_prob_gen = 0.2  # When an edge is generating a bunch of vehicles for rush hour
     low_rush_hour_prob_gen = 0.01  # When an edge is on the removal side of rush hour
     side_high_rush_hour_prob_gen = 0.05  # When a side edge is generating for rush hour
