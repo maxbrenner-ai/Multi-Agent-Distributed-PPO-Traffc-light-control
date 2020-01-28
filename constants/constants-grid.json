@@ -6,6 +6,7 @@
         "eval_num_eps": [25],
         "max_ep_steps": [1250],
         "generation_ep_steps": [1000],
+        "warmup_ep_steps": [0],
         "test_num_eps": [50]
     },
     "agent": {
@@ -34,8 +35,8 @@
         "uniform_generation_probability": [0.05]
     },
     "multiagent": {
-        "reward_interpolation": [0, 0.2, 0.5, 0.8, 1],
-        "state_interpolation": [0]
+        "reward_interpolation": [0],
+        "state_interpolation": [0, 0.2, 0.5, 0.8, 1]
     },
     "parallel":{
         "num_workers": [8]

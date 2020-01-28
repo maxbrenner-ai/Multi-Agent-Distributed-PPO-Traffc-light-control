@@ -41,22 +41,26 @@ class PPOWorker(Worker):
         step_times = []
         # Sync.
         self._copy_shared_model_to_local()
-        for rollout_step in range(self.constants['episode']['rollout_length']):
+        rollout_amt = 0  # keeps track of the amt in the current rollout storage
+        while rollout_amt < self.constants['episode']['rollout_length']:
             start_step_time = time.time()
             prediction = self._get_prediction(state)
             action = self._get_action(prediction)
             next_state, reward, done = self.env.step(action, self.ep_step, get_global_reward=False)
-
             self.ep_step += 1
             if done:
                 # Sync local model with shared model at start of each ep
                 self._copy_shared_model_to_local()
                 self.ep_step = 0
 
-            storage.add(prediction)
-            storage.add({'r': tensor(reward, self.device).unsqueeze(-1),
-                         'm': tensor(self._stack(1 - done), self.device).unsqueeze(-1),
-                         's': tensor(state, self.device)})
+            # This is to stabilize learning, since the first some amt of states wont represent the env very well
+            # since it will be more empty than normal
+            if self.ep_step > self.constants['episode']['warmup_ep_steps']:
+                storage.add(prediction)
+                storage.add({'r': tensor(reward, self.device).unsqueeze(-1),
+                             'm': tensor(self._stack(1 - done), self.device).unsqueeze(-1),
+                             's': tensor(state, self.device)})
+                rollout_amt += 1
             # print('-------------')
             # print(prediction)
             # print(storage.r[-1].shape)

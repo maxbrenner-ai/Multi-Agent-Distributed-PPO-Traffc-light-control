@@ -57,7 +57,7 @@ class IntersectionsEnv(Environment):
         if normalize: sim_step /= (self.constants['episode']['max_ep_steps'] / 10.)  # Normalized between 0 and 10
         return sim_step
 
-    # todo: Might need to normalize vals especially elapsed time!!!!!!!!!!!!!!!!!!!
+    # todo: Work with normalization
     def get_state(self):
         # State is made of the jam length for each detector, current phase of each intersection, elapsed time
         # for the current phase of each intersection and the current ep step
@@ -85,18 +85,29 @@ class IntersectionsEnv(Environment):
         # DeMorgan's law of above
         if self.single_agent or self.agent_type == 'rule':
             self._add_to_state(state, sim_step, key='sim_step', intersection=None)
-        state = self._process_state(state)
-        return state
 
-    # Halt
-    # ASSUMPTION: this returns the global reward (for now)
-    # def get_reward(self, get_global):
-    #     # Reward is -1 for halted vehicle at intersection, +1 for no halted vehicle
-    #     num_stopped = sum([self.connection.lanearea.getJamLengthVehicle(det) for det in self.all_dets])
-    #     reward = (len(self.all_dets) * DET_LENGTH_IN_CARS) - 2 * num_stopped
-    #     reward /= (len(self.all_dets) * DET_LENGTH_IN_CARS)  # norm.
-    #     assert -1.001 <= reward <= 1.001
-    #     return reward
+        # Don't interpolate if single agent or agent type is rule or multiagent but state disc is 0
+        if self.single_agent or self.agent_type == 'rule' or self.constants['multiagent']['state_interpolation'] == 0:
+            return self._process_state(state)
+
+        state_size = PER_AGENT_STATE_SIZE + GLOBAL_STATE_SIZE
+        final_state = []
+        for intersection in self.intersections:
+            neighborhood = self.neighborhoods[intersection]
+            # Add the intersection state itself
+            intersection_state = state[intersection]
+            final_state.append(np.zeros(shape=(state_size * self.max_num_neighbors,)))
+            # Slice in this intersection's state not discounted
+            final_state[-1][:state_size] = np.array(intersection_state)
+            # Then its discounted neighbors
+            for n, neighbor in enumerate(neighborhood):
+                assert neighbor != intersection
+                extension = self.constants['multiagent']['state_interpolation'] * np.array(state[neighbor])
+                range_start = (n + 1) * state_size
+                range_end = range_start + state_size
+                final_state[-1][range_start:range_end] = extension
+        state = self._process_state(final_state)
+        return state
 
     # Allows for interpolation between local and global reward given a reward disc. factor
     # get_global is used to signal returning the global rew as a single value for the eval runs, ow an array is returned

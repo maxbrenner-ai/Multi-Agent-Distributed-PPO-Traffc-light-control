@@ -190,7 +190,7 @@ def get_net_path(constants):
     return file
 
 
-def get_state_action_size(PER_AGENT_STATE_SIZE, GLOBAL_STATE_SIZE, ACTION_SIZE, constants):
+def get_state_action_size(PER_AGENT_STATE_SIZE, GLOBAL_STATE_SIZE, ACTION_SIZE, max_neighborhood_size, constants):
     def get_num_agents():
         shape = constants['environment']['shape']
         return int(shape[0] * shape[1])
@@ -199,4 +199,10 @@ def get_state_action_size(PER_AGENT_STATE_SIZE, GLOBAL_STATE_SIZE, ACTION_SIZE, 
     if single_agent:
         return {'s': int((get_num_agents() * PER_AGENT_STATE_SIZE) + GLOBAL_STATE_SIZE), 'a': int(pow(ACTION_SIZE, get_num_agents()))}
     else:
-        return {'s': int(PER_AGENT_STATE_SIZE + GLOBAL_STATE_SIZE), 'a': int(ACTION_SIZE)}
+        # Multi-agent:
+        # 1) If state disc is 0 then state size is PER_AGENT_STATE_SIZE + GLOBAL_STATE_SIZE
+        if constants['multiagent']['state_interpolation'] == 0:
+            return {'s': int(PER_AGENT_STATE_SIZE + GLOBAL_STATE_SIZE), 'a': int(ACTION_SIZE)}
+        # 2) O.w. need to calc the biggest possible neighborhood
+        else:
+            return {'s': int((PER_AGENT_STATE_SIZE + GLOBAL_STATE_SIZE) * max_neighborhood_size), 'a': int(ACTION_SIZE)}

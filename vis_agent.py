@@ -6,6 +6,7 @@ from models.ppo_model import NN_Model
 from utils.utils import *
 from environments.intersections import IntersectionsEnv, PER_AGENT_STATE_SIZE, GLOBAL_STATE_SIZE, ACTION_SIZE
 from copy import deepcopy
+from utils.net_scrape import *
 
 
 def test_worker(worker):
@@ -14,7 +15,8 @@ def test_worker(worker):
     worker.env.connection.close()
 
 def test_PPO_agent(constants, device, loaded_model):
-    s_a = get_state_action_size(PER_AGENT_STATE_SIZE, GLOBAL_STATE_SIZE, ACTION_SIZE, constants)
+    _, max_neighborhood_size = get_intersection_neighborhoods(get_net_path(constants))
+    s_a = get_state_action_size(PER_AGENT_STATE_SIZE, GLOBAL_STATE_SIZE, ACTION_SIZE, max_neighborhood_size, constants)
     env = IntersectionsEnv(constants, device, 'vis_ppo', True, get_net_path(constants), vis=True)
     local_NN = NN_Model(s_a['s'], s_a['a'], device).to(device)
     local_NN.load_state_dict(loaded_model)

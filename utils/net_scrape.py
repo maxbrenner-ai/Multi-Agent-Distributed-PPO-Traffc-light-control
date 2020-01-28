@@ -100,3 +100,25 @@ def get_non_intersections(filepath):
             continue
         arr.append(node)
     return arr
+
+
+# for state interoplation
+# {intA: [intB...]...} -> dict of each intersection of arrays of the intersections in its neighborhood
+def get_intersection_neighborhoods(filepath):
+    tree = ET.parse(filepath)
+    root = tree.getroot()
+    dic = {}
+    for c in root.iter('junction'):
+        node = c.attrib['id']
+        if c.attrib['type'] == 'internal' or 'intersection' not in node:
+            continue
+        dic[node] = []
+        # parse through incoming lanes
+        incLanes = c.attrib['incLanes']
+        incLanes_list = incLanes.split(' ')
+        for lane in incLanes_list:
+            lane_split = lane.split('___')[0]
+            if 'intersection' in lane_split:
+                dic[node].append(lane_split)
+    # returns the dic of neighbors and the max number of neighbors ( + 1)
+    return dic, max([len(v) for v in list(dic.values())]) + 1  # + 1 for including itself

@@ -20,11 +20,16 @@ class Environment:
         self.intersections = get_intersections(net_path)
         # for adding to state
         self.intersections_index = {intersection: i for i, intersection in enumerate(self.intersections)}
+        # for state discounting/interpolation
+        self.neighborhoods, self.max_num_neighbors = get_intersection_neighborhoods(net_path)
 
     def _make_state(self):
         if self.agent_type == 'rule': return {}
         if self.single_agent: return []
-        else: return [[] for _ in range(len(self.intersections))]
+        else:
+            if self.constants['multiagent']['state_interpolation'] == 0:
+                return [[] for _ in range(len(self.intersections))]
+            else: return {} # if state disc is 0 then return [[], [], ...] ow dict
 
     def _add_to_state(self, state, value, key, intersection):
         if self.agent_type == 'rule':
@@ -40,10 +45,17 @@ class Environment:
                 else:
                     state.append(value)
             else:
-                if isinstance(value, list):
-                    state[self.intersections_index[intersection]].extend(value)
+                if self.constants['multiagent']['state_interpolation'] == 0:
+                    if isinstance(value, list):
+                        state[self.intersections_index[intersection]].extend(value)
+                    else:
+                        state[self.intersections_index[intersection]].append(value)
                 else:
-                    state[self.intersections_index[intersection]].append(value)
+                    if intersection not in state: state[intersection] = []
+                    if isinstance(value, list):
+                        state[intersection].extend(value)
+                    else:
+                        state[intersection].append(value)
 
     def _process_state(self, state):
         if not self.agent_type == 'rule':
