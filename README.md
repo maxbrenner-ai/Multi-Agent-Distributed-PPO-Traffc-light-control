@@ -42,7 +42,9 @@ In the case of this repo, I use independent MARL which means each agent does not
 * pandas
 
 ### Running
-Can alter `constants.json` or `constans-grid.json` in /constants to change different hyperparameters. In `main.py` can run experiments with `run_normal` (runs multiple experiments using `constants.json`), `run_random_search` (runs a random search on `constants-grid.json`) or `run_grid_search` (runs a grid search on `constants-grid.json`). Can save and load models. Can also visualize models by running `vis_agent.py` and changing `run(load_model_file=<MODEL FILE NAME>)` to the model file. The 4 envs implemented are 1x1, 2x2, 3x3 and 4x4. Alter 
+Can alter `constants.json` or `constans-grid.json` in /constants to change different hyperparameters. In `main.py` can run experiments with `run_normal` (runs multiple experiments using `constants.json`), `run_random_search` (runs a random search on `constants-grid.json`) or `run_grid_search` (runs a grid search on `constants-grid.json`). Can save and load models. Can also visualize models by running `vis_agent.py` and changing `run(load_model_file=<MODEL FILE NAME>)` to the model file. The 4 envs implemented are 1x1, 2x2, 3x3 and 4x4. 
+
+`shape` is the grid, `rush_hour` can be set to true for 2x2 which adds a kind of rush-hour spawning probability distribution. And `uniform_generation_probability` is the spawn rate for cars when `rush_hour` is false. 
 ```
 "environment": {
         "shape": [4, 4],
@@ -50,7 +52,8 @@ Can alter `constants.json` or `constans-grid.json` in /constants to change diffe
         "uniform_generation_probability": 0.06
     },
 ```
-in constants file. `shape` is the grid, `rush_hour` can be set to true for 2x2 which adds a kind of rush-hour spawning probability distribution. And `uniform_generation_probability` is the spawn rate for cars when `rush_hour` is false. Change `num_workers` based on how many processes you want active for the distribibuted part of DPPO. 
+
+Change `num_workers` based on how many processes you want active for the distribibuted part of DPPO. 
 ```
     "parallel":{
         "num_workers": 8
