@@ -1,4 +1,4 @@
-# Distributed PPO for Traffic Light Control
+# Distributed PPO for Traffic Light Control with Multi-agent RL
 Uses a distributed version of the deep reinforcement learning algorithm [PPO](https://arxiv.org/abs/1707.06347) to control a grid of traffic lights for optimized traffic flow through the system. The traffic enviornment is implemented in the realistic traffic simulation [SUMO](https://sumo.dlr.de/docs/index.html). Multi-agent RL (MARL) is implemented with each traffic light acting as a single agent. 
 
 ## SUMO / Traci
