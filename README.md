@@ -19,10 +19,12 @@ Distributed algorithms use multiple processes to speed up existing algorithms su
 
 ###  MARL
 ![1x1 grid](/images/1_1-grid.png)
+
 For example, the action space for a single intersection is 2 as either the NS light can be green or the EW light can be greed. 
 
 ![2x2 grid](/images/2_2-grid.png)
-The numebr of actions for a 2x2 grid is 2^4 = 16. For example if 1 means NS is green and 0 means EW is green. Then 1011 in binary (13 in decimal) would mean that 3 of the 4 intersections are NS green. This can become a problem as the grid gets even bigger. 
+
+The number of actions for a 2x2 grid is 2^4 = 16. For example if 1 means NS is green and 0 means EW is green. Then 1011 in binary (13 in decimal) would mean that 3 of the 4 intersections are NS green. This can become a problem as the grid gets even bigger. 
 
 ![MARL](/images/marl.png)
 
