@@ -223,7 +223,6 @@ class IntersectionsEnv(Environment):
         return routes_string
 
     def _generate_routefile(self):
-        # np.random.seed(42)  # make tests reproducible
         routes_string = \
         """
         <routes>

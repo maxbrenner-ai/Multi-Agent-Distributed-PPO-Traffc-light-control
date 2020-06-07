@@ -61,11 +61,6 @@ class PPOWorker(Worker):
                              'm': tensor(self._stack(1 - done), self.device).unsqueeze(-1),
                              's': tensor(state, self.device)})
                 rollout_amt += 1
-            # print('-------------')
-            # print(prediction)
-            # print(storage.r[-1].shape)
-            # print(storage.m[-1].shape)
-            # print(storage.s[-1].shape)
             state = np.copy(next_state)
 
             total_step += 1
@@ -76,7 +71,6 @@ class PPOWorker(Worker):
         self.state = np.copy(state)
 
         prediction = self._get_prediction(state)
-        # print(prediction)
         storage.add(prediction)
         storage.placeholder()
 
@@ -91,19 +85,8 @@ class PPOWorker(Worker):
             storage.adv[i] = advantages.detach()
             storage.ret[i] = returns.detach()
 
-        # print('------------')
-        # print(storage.adv[-1].shape)
-        # print(storage.ret[-1].shape)
 
         states, actions, log_probs_old, returns, advantages = storage.cat(['s', 'a', 'log_pi_a', 'ret', 'adv'])
-
-        # print('----------')
-        # print(states.shape)
-        # print(actions.shape)
-        # print(log_probs_old.shape)
-        # print(returns.shape)
-        # print(advantages.shape)
-
         actions = actions.detach()
         log_probs_old = log_probs_old.detach()
         advantages = (advantages - advantages.mean()) / advantages.std()
@@ -130,7 +113,6 @@ class PPOWorker(Worker):
 
                 start_pred_time = time.time()
                 prediction = self._get_prediction(sampled_states, sampled_actions)
-                # print(prediction)
                 end_pred_time = time.time()
                 train_pred_times.append(end_pred_time - start_pred_time)
 
@@ -155,4 +137,4 @@ class PPOWorker(Worker):
                 end_batch_time = time.time()
                 batch_times.append(end_batch_time - start_batch_time)
         self.NN.eval()
-        return total_step;''', np.array(step_times).mean(), np.array(batch_times).mean(), np.array(train_pred_times).mean()'''
+        return total_step

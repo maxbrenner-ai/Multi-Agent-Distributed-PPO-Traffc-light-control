@@ -1,6 +1,6 @@
 {
     "episode":{
-        "num_train_rollouts": 400,
+        "num_train_rollouts": 300,
         "rollout_length": 2048,
         "eval_freq": 50,
         "eval_num_eps": 25,
@@ -23,16 +23,17 @@
         "learning_rate": 1e-4,
         "clip_grads": true,
         "gradient_clip": 1.0,
-        "value_loss_coef": 1.0
+        "value_loss_coef": 1.0,
+        "hidden_layer_size": 32
     },
     "rule": {
         "rule_set": "cycle",
-        "rule_set_params": {"cycle_length": 20, "NS_mult": 1.0, "EW_mult": 1.0, "phase_end_offset": 100}
+        "rule_set_params": {"cycle_length": 40, "NS_mult": 1.0, "EW_mult": 1.0, "phase_end_offset": 100}
     },
     "environment": {
-        "shape": [3, 3],
+        "shape": [4, 4],
         "rush_hour": false,
-        "uniform_generation_probability": 0.05
+        "uniform_generation_probability": 0.06
     },
     "multiagent": {
         "reward_interpolation": 0,

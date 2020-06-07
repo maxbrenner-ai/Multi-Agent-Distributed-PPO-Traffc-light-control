@@ -49,12 +49,11 @@ class CriticModel(nn.Module):
 
 
 class NN_Model(nn.Module):
-    def __init__(self, state_size, action_size, device):
+    def __init__(self, state_size, action_size, hidden_layer_size, device):
         super(NN_Model, self).__init__()
-        hidden_size = 32
-        self.body_model = ModelBody(state_size, hidden_size).to(device)
-        self.actor_model = ActorModel(hidden_size, action_size).to(device)
-        self.critic_model = CriticModel(hidden_size).to(device)
+        self.body_model = ModelBody(state_size, hidden_layer_size).to(device)
+        self.actor_model = ActorModel(hidden_layer_size, action_size).to(device)
+        self.critic_model = CriticModel(hidden_layer_size).to(device)
 
         self.models = [self.body_model, self.actor_model, self.critic_model]
 

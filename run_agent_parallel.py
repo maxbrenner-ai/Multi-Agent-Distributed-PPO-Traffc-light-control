@@ -13,7 +13,7 @@ def train_worker(id, shared_NN, data_collector, optimizer, rollout_counter, cons
     s_a = get_state_action_size(PER_AGENT_STATE_SIZE, GLOBAL_STATE_SIZE, ACTION_SIZE, max_neighborhood_size, constants)
     env = IntersectionsEnv(constants, device, id, False, get_net_path(constants))
     # Assumes PPO worker
-    local_NN = NN_Model(s_a['s'], s_a['a'], device).to(device)
+    local_NN = NN_Model(s_a['s'], s_a['a'], constants['ppo']['hidden_layer_size'], device).to(device)
     worker = PPOWorker(constants, device, env, None, shared_NN, local_NN, optimizer, id)
     train_step = 0
     while rollout_counter.get() < constants['episode']['num_train_rollouts'] + 1:
@@ -29,7 +29,7 @@ def eval_worker(id, shared_NN, data_collector, rollout_counter, constants, devic
     s_a = get_state_action_size(PER_AGENT_STATE_SIZE, GLOBAL_STATE_SIZE, ACTION_SIZE, max_neighborhood_size, constants)
     env = IntersectionsEnv(constants, device, id, True, get_net_path(constants))
     # Assumes PPO worker
-    local_NN = NN_Model(s_a['s'], s_a['a'], device).to(device)
+    local_NN = NN_Model(s_a['s'], s_a['a'], constants['ppo']['hidden_layer_size'], device).to(device)
     worker = PPOWorker(constants, device, env, data_collector, shared_NN, local_NN, None, id)
     last_eval = 0
     while True:
@@ -53,7 +53,7 @@ def test_worker(id, ep_counter, constants, device, worker=None, data_collector=N
     if not worker:
         s_a = get_state_action_size(PER_AGENT_STATE_SIZE, GLOBAL_STATE_SIZE, ACTION_SIZE, max_neighborhood_size, constants)
         env = IntersectionsEnv(constants, device, id, True, get_net_path(constants))
-        local_NN = NN_Model(s_a['s'], s_a['a'], device).to(device)
+        local_NN = NN_Model(s_a['s'], s_a['a'], constants['ppo']['hidden_layer_size'], device).to(device)
         worker = PPOWorker(constants, device, env, data_collector,
                          shared_NN, local_NN, None, id)
     while ep_counter.get() < constants['episode']['test_num_eps']:
@@ -70,7 +70,7 @@ def test_worker(id, ep_counter, constants, device, worker=None, data_collector=N
 def train_PPO(constants, device, data_collector):
     _, max_neighborhood_size = get_intersection_neighborhoods(get_net_path(constants))
     s_a = get_state_action_size(PER_AGENT_STATE_SIZE, GLOBAL_STATE_SIZE, ACTION_SIZE, max_neighborhood_size, constants)
-    shared_NN = NN_Model(s_a['s'], s_a['a'], device).to(device)
+    shared_NN = NN_Model(s_a['s'], s_a['a'], constants['ppo']['hidden_layer_size'], device).to(device)
     shared_NN.share_memory()
     optimizer = torch.optim.Adam(shared_NN.parameters(), constants['ppo']['learning_rate'])
     rollout_counter = Counter()  # To keep track of all the rollouts amongst agents
@@ -93,7 +93,7 @@ def train_PPO(constants, device, data_collector):
 def test_PPO(constants, device, data_collector, loaded_model):
     _, max_neighborhood_size = get_intersection_neighborhoods(get_net_path(constants))
     s_a = get_state_action_size(PER_AGENT_STATE_SIZE, GLOBAL_STATE_SIZE, ACTION_SIZE, max_neighborhood_size, constants)
-    shared_NN = NN_Model(s_a['s'], s_a['a'], device).to(device)
+    shared_NN = NN_Model(s_a['s'], s_a['a'], constants['ppo']['hidden_layer_size'], device).to(device)
     shared_NN.load_state_dict(loaded_model)
     shared_NN.share_memory()
     ep_counter = Counter()  # Eps across all agents
