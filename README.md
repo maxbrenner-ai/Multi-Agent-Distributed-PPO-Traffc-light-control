@@ -28,6 +28,39 @@ The number of actions for a 2x2 grid is 2^4 = 16. For example if 1 means NS is g
 
 ![MARL](/images/marl.png)
 
-[Cooperative MARL](https://arxiv.org/abs/1908.03963) is a way to fix this "curse of dimensionality" problem. With MARL there are multiple agents in the environment. And in this case each agent controls a single intersection. So now an agent only has 2 possible actions no matter how big the grid gets! MARL also helps with inputs. Instead of a single agent needing to be trained to deal with say 4 states (for a 2x2 grid) it can just deal with one. MARL is a great tool in cases where your problem can run into scaling issues. 
+[Cooperative MARL](https://arxiv.org/abs/1908.03963) is a way to fix this ["curse of dimensionality"](https://en.wikipedia.org/wiki/Curse_of_dimensionality) problem. With MARL there are multiple agents in the environment. And in this case each agent controls a single intersection. So now an agent only has 2 possible actions no matter how big the grid gets! MARL also helps with inputs. Instead of a single agent needing to be trained to deal with say 4 states (for a 2x2 grid) it can just deal with one. MARL is a great tool in cases where your problem can run into scaling issues. 
 
 In the case of this repo, I use independent MARL which means each agent does not directly communicate. However, each actor and critic to share parameters across all agents. One trick for better cooperation is to share certain info across agents (other than weights). Reward and states are two popular items to share. This [post](https://bair.berkeley.edu/blog/2018/12/12/rllib/) by Berkeley goes into this more.
+
+## How to Run this
+### Depndencies
+* numpy
+* traci
+* sumolib
+* scipy
+* pytorch
+* pandas
+
+### Running
+Can alter `constants.json` or `constans-grid.json` in /constants to change different hyperparameters. In `main.py` can run experiments with `run_normal` (runs multiple experiments using `constants.json`), `run_random_search` (runs a random search on `constants-grid.json`) or `run_grid_search` (runs a grid search on `constants-grid.json`). Can save and load models. Can also visualize models by running `vis_agent.py` and changing `run(load_model_file=<MODEL FILE NAME>)` to the model file. The 4 envs implemented are 1x1, 2x2, 3x3 and 4x4. Alter 
+```
+"environment": {
+        "shape": [4, 4],
+        "rush_hour": false,
+        "uniform_generation_probability": 0.06
+    },
+```
+in constants file. `shape` is the grid, `rush_hour` can be set to true for 2x2 which adds a kind of rush-hour spawning probability distribution. And `uniform_generation_probability` is the spawn rate for cars when `rush_hour` is false. Change `num_workers` based on how many processes you want active for the distribibuted part of DPPO. 
+```
+    "parallel":{
+        "num_workers": 8
+    }
+```
+Finally, you can change the `agent_type` to `rule` if you cant a simple rule based agent to run (which just changes each light after a set amount of time. And can change `single_agent` to true to not use MARL. 
+
+```
+    "agent": {
+        "agent_type": "ppo",
+        "single_agent": false
+    },
+```
