@@ -15,6 +15,8 @@ The environments implemented for this problem are grids where an intersection is
 ![PPO code](/images/ppo.png)
 
 ### DPPO
+#### DISCLAIMER: The DPPO implementation here is incorrect. It does not properly aggregate the gradients during training.
+
 Distributed algorithms use multiple processes to speed up existing algorithms such as PPO. There arent as many simple resources on DPPO but I used a few different sources noted in my code such as [this repo](https://github.com/alexis-jacq/Pytorch-DPPO). I first implemented single-agent RL which means that in a single environment there is only one agent. In this apps case, this means all traffic lights are controlled by one agent. However, that means as the grid size increases the action size increases exponentially. 
 
 ###  MARL
